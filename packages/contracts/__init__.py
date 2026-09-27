@@ -204,6 +204,15 @@ from packages.contracts.orchestration import (
     WakeArbitrationCandidate,
     WakeArbitrationResult,
 )
+from packages.contracts.readiness import (
+    DailyDriverScorecard,
+    DeviceHardwareProfile,
+    ProductionConfig,
+    ReadinessStatus,
+    RollbackState,
+    SoakTestResult,
+    VerificationLevel,
+)
 from packages.contracts.runtime import (
     AudioStreamConfig,
     BargeInEvent,
@@ -442,4 +451,11 @@ __all__ = [
     "CrossDeviceHandoffContext",
     "CrossDeviceHandoffResult",
     "VoiceToResponseTrace",
+    "VerificationLevel",
+    "ReadinessStatus",
+    "DeviceHardwareProfile",
+    "SoakTestResult",
+    "DailyDriverScorecard",
+    "ProductionConfig",
+    "RollbackState",
 ]

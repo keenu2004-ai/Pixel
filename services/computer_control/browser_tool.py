@@ -59,7 +59,7 @@ class ControlledBrowserTool:
         }
 
     def _sanitize_web_content(self, raw_text: str) -> str:
-        """Neutralizes prompt injection patterns discovered inside web pages."""
+        """Neutralizes prompt injection patterns and tags external web content."""
         cleaned = raw_text
         for pattern in PROMPT_INJECTION_PATTERNS:
             if pattern.search(cleaned):
@@ -67,7 +67,7 @@ class ControlledBrowserTool:
                     "Detected potential prompt injection attempt in web page content: neutralising"
                 )
                 cleaned = pattern.sub("[UNTRUSTED_CONTENT_FILTERED]", cleaned)
-        return cleaned
+        return f"[UNTRUSTED EXTERNAL WEB CONTENT: {self._current_url}]\n{cleaned}"
 
     def _is_url_allowed(self, url: str) -> bool:
         """Validates destination domain against security blocklists."""
