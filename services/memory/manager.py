@@ -42,6 +42,7 @@ class MemoryManager:
         store: SQLiteMemoryStore | None = None,
         embedding_provider: BaseEmbeddingProvider | None = None,
         working_memory_capacity: int = 20,
+        personalization_manager: Any | None = None,
     ) -> None:
         self.store = store or SQLiteMemoryStore(
             db_path=db_path, embedding_provider=embedding_provider
@@ -49,6 +50,7 @@ class MemoryManager:
         self.extractor = MemoryExtractor(memory_store=self.store)
         self.working_memory_capacity = working_memory_capacity
         self.working_memories: dict[str, WorkingMemory] = {}
+        self.personalization_manager = personalization_manager
         self._bg_tasks: set[asyncio.Task[Any]] = set()
 
     def get_working_memory(self, session_id: str) -> list[dict[str, str]]:
@@ -86,7 +88,19 @@ class MemoryManager:
         wm = self.get_working_memory_buffer(session_id)
         wm.add_turn(u_text, a_text)
 
-        # 2. Asynchronous background extraction (non-blocking)
+        # 2. If PersonalizationManager is present, evaluate turn learning
+        if self.personalization_manager is not None and u_text:
+            try:
+                await self.personalization_manager.handle_turn_learning(
+                    user_utterance=u_text,
+                    session_id=session_id,
+                    previous_assistant_response=a_text,
+                    user_id=user_id,
+                )
+            except Exception as err:
+                logger.error("Turn learning error in personalization layer: %s", err)
+
+        # 3. Asynchronous background extraction (non-blocking)
         task = asyncio.create_task(self._safe_extract(u_text, a_text, session_id, user_id))
         self._bg_tasks.add(task)
         task.add_done_callback(self._bg_tasks.discard)
@@ -131,17 +145,33 @@ class MemoryManager:
         user_id: str = "default_user",
         top_k_episodes: int = 3,
     ) -> dict[str, Any]:
-        """Unified context assembly including working memory, active facts, and episodic context."""
+        """Unified context assembly including working memory, active facts, episodic context, and personalization."""
         mem = await self.query_relevant_memory(
             query=query, user_id=user_id, top_k_episodes=top_k_episodes
         )
         working_ctx = self.get_working_memory(session_id=session_id)
         mem["working_context"] = working_ctx
+
+        if self.personalization_manager is not None:
+            p_ctx = await self.personalization_manager.assemble_context(
+                query=query,
+                session_id=session_id,
+                user_id=user_id,
+                working_turns=working_ctx,
+                raw_facts=mem.get("facts", []),
+            )
+            mem["personal_context"] = p_ctx.model_dump()
+
         return mem
 
     async def forget(self, keyword: str, user_id: str = "default_user") -> int:
-        """Executes Right to Forget deletion across facts and interaction history."""
-        return await self.store.forget_topic(keyword=keyword, user_id=user_id)
+        """Executes Right to Forget deletion across facts, episodes, and cascading user model stores."""
+        deleted = await self.store.forget_topic(keyword=keyword, user_id=user_id)
+        if self.personalization_manager is not None:
+            deleted += await self.personalization_manager.purge_user_memory(
+                user_id=user_id, keyword=keyword
+            )
+        return deleted
 
     async def forget_topic(self, keyword: str, user_id: str = "default_user") -> int:
         """Right to Forget alias."""

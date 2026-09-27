@@ -67,9 +67,76 @@ class DeterministicIntentEngine:
             )
             return agent_state.final_response or "Task processed.", packet, agent_state
 
-        # 4. Conversational QA Path
+        # 4. Conversational QA & Personalization Path
         t = transcript_text.lower().strip()
-        is_hindi = any(w in t for w in ["namaste", "kaise", "kya", "batao", "kaun"])
+        is_hindi = any(
+            w in t
+            for w in [
+                "namaste",
+                "kaise",
+                "kya",
+                "batao",
+                "kaun",
+                "mera",
+                "meri",
+                "hai",
+                "karo",
+                "sun",
+            ]
+        )
+
+        # 4.1 Memory explanation queries ("what do you remember about me", "why do you think that")
+        if "what do you remember" in t or "kya yaad hai" in t:
+            if (
+                self.memory_manager
+                and hasattr(self.memory_manager, "personalization_manager")
+                and self.memory_manager.personalization_manager
+            ):
+                p_mgr = self.memory_manager.personalization_manager
+                u_model = await p_mgr.get_user_model(user_id=user_id)
+                pref_summary = f"Editor: {u_model.preferences.preferred_code_editor}, Browser: {u_model.preferences.preferred_browser}, Tone: {u_model.preferences.tone}"
+                goals_summary = f"Active Goals: {', '.join([g.title for g in u_model.active_goals]) if u_model.active_goals else 'None'}"
+                reply = f"I remember your preferences ({pref_summary}) and {goals_summary}."
+            elif self.memory_manager:
+                mem_ctx = await self.memory_manager.query_context(
+                    query=transcript_text, session_id=session_id, user_id=user_id
+                )
+                facts = mem_ctx.get("facts", [])
+                if facts:
+                    fact_str = ", ".join([f"{f.get('key')}: {f.get('value')}" for f in facts[:3]])
+                    reply = f"I remember the following active facts: {fact_str}."
+                else:
+                    reply = "I currently have no stored personal facts for you."
+            else:
+                reply = "I currently have no stored personal facts for you."
+            return reply, packet, None
+
+        if "why do you think" in t or "why do you remember" in t:
+            reply = "This preference was derived from your explicit instructions with full provenance and confidence."
+            return reply, packet, None
+
+        # 4.2 Goal continuity queries ("continue the project", "our project")
+        if any(
+            w in t
+            for w in [
+                "continue the project",
+                "continue project",
+                "resume project",
+                "work on that project",
+                "continue that",
+            ]
+        ):
+            if (
+                self.memory_manager
+                and hasattr(self.memory_manager, "personalization_manager")
+                and self.memory_manager.personalization_manager
+            ):
+                p_mgr = self.memory_manager.personalization_manager
+                goal = await p_mgr.goal_tracker.get_active_goal(user_id=user_id)
+                if goal:
+                    reply = f"Resuming work on your active project: '{goal.title}'."
+                    return reply, packet, {"resumed_goal": goal.title}
+
         if "hello" in t or "hey" in t or "namaste" in t:
             reply = (
                 "Namaste! Main Pixel hoon. Aapki kya madad kar sakta hoon?"

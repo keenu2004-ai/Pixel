@@ -119,7 +119,41 @@ class AgentPlanner:
                     )
                 )
 
-        # 5. Direct Tool Name / Capability Matching
+        # 5. Direct Tool Name / Capability Matching & Personalized Editor/App Launch
+        if not steps:
+            # Check for personalized editor/browser launch request
+            if "launch_app" in tool_names and (
+                "editor" in q_lower or "code" in q_lower or "ide" in q_lower
+            ):
+                target_app = "VS Code"
+                if semantic_facts:
+                    for f in semantic_facts:
+                        if "editor" in str(f.get("key", "")).lower():
+                            target_app = str(f.get("value", target_app))
+                steps.append(
+                    PlanStep(
+                        step_id=1,
+                        description=f"Launch preferred editor '{target_app}'",
+                        tool_name="launch_app",
+                        arguments={"app_name": target_app},
+                    )
+                )
+
+            elif "launch_app" in tool_names and ("browser" in q_lower or "web" in q_lower):
+                target_browser = "chrome"
+                if semantic_facts:
+                    for f in semantic_facts:
+                        if "browser" in str(f.get("key", "")).lower():
+                            target_browser = str(f.get("value", target_browser))
+                steps.append(
+                    PlanStep(
+                        step_id=1,
+                        description=f"Launch preferred browser '{target_browser}'",
+                        tool_name="launch_app",
+                        arguments={"app_name": target_browser},
+                    )
+                )
+
         if not steps:
             for spec in available_tools:
                 tool_tokens = spec.name.lower().split("_")

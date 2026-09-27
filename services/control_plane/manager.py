@@ -62,6 +62,7 @@ from services.ecosystem.webhooks.engine import WebhookEngine
 from services.memory.manager import MemoryManager
 from services.orchestration.pki import PKIEngine
 from services.orchestration.registry import DeviceRegistry, PresenceManager
+from services.personalization.manager import PersonalizationManager
 from services.voice_gateway.pipeline import VoicePipeline
 
 logger = logging.getLogger(__name__)
@@ -79,6 +80,7 @@ class ControlPlaneManager:
         budget_manager: BudgetManager | None = None,
         drift_detector: GoalDriftDetector | None = None,
         memory_manager: MemoryManager | None = None,
+        personalization_manager: PersonalizationManager | None = None,
         policy_gate: AgentPolicyGate | None = None,
         tool_registry: ToolRegistry | None = None,
         event_bus: EventBus | None = None,
@@ -94,10 +96,16 @@ class ControlPlaneManager:
         self.device_registry = device_registry or DeviceRegistry(pki_engine=self.pki_engine)
         self.presence_manager = presence_manager or PresenceManager()
 
-        # 2. Memory & Knowledge
-        self.memory_manager = memory_manager or MemoryManager(
-            db_path="data/persistence/pixel_memory.db"
+        # 2. Personalization & Memory
+        self.personalization_manager = personalization_manager or PersonalizationManager(
+            db_path="data/persistence/pixel_user_model.db"
         )
+        self.memory_manager = memory_manager or MemoryManager(
+            db_path="data/persistence/pixel_memory.db",
+            personalization_manager=self.personalization_manager,
+        )
+        if not self.memory_manager.personalization_manager:
+            self.memory_manager.personalization_manager = self.personalization_manager
 
         # 3. Policy and Verification
         self.policy_gate = policy_gate or AgentPolicyGate()
