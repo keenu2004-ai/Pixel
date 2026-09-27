@@ -42,6 +42,15 @@ from packages.contracts.events import (
     WakeEvent,
 )
 from packages.contracts.intents import IntentPacket, IntentRoutingType
+from packages.contracts.mobile import (
+    MobileApprovalRequest,
+    MobileApprovalResponse,
+    MobileAssistantState,
+    MobileDeviceMetadata,
+    MobileRegistrationRequest,
+    MobileRegistrationResponse,
+    MobileVoicePacket,
+)
 from packages.contracts.security import (
     AuditRecord,
     AuthToken,
@@ -101,4 +110,11 @@ __all__ = [
     "WindowState",
     "ScreenshotPayload",
     "ClipboardData",
+    "MobileAssistantState",
+    "MobileDeviceMetadata",
+    "MobileRegistrationRequest",
+    "MobileRegistrationResponse",
+    "MobileVoicePacket",
+    "MobileApprovalRequest",
+    "MobileApprovalResponse",
 ]

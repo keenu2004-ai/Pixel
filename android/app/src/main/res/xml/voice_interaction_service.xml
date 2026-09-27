@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="ai.pixel.assistant.service.PixelVoiceInteractionSessionService"
+    android:recognitionService="ai.pixel.assistant.service.PixelRecognitionService"
+    android:settingsActivity="ai.pixel.assistant.ui.SettingsActivity"
+    android:supportsAssist="true"
+    android:supportsLaunchFromKeyguard="true"
+    android:supportsLocalInteraction="true" />
