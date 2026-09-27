@@ -44,3 +44,20 @@ The Control Plane exposes real-time administrative telemetry via `/ws/control-pl
 - **Zero Raw Secret Telemetry**: Logs and telemetry streams are strictly scrubbed of tokens, passwords, private keys, and session cookies.
 - **Client Backpressure Protection**: WebSocket broadcast buffers are bounded with drop-oldest drop queues to protect backend throughput against lagging clients.
 
+---
+
+## 4. Ecosystem & Extensibility Observability (Phase 11)
+
+| Metric Name | Type | Target Threshold | Description |
+| :--- | :--- | :--- | :--- |
+| `pixel.ecosystem.plugin_dispatch_ms` | Histogram | $< 50\text{ms}$ (P95) | Subprocess sandbox launch and JSON-RPC roundtrip |
+| `pixel.ecosystem.backup_duration_ms` | Histogram | $< 100\text{ms}$ (P95) | Client AES-GCM encryption and envelope generation |
+| `pixel.ecosystem.webhook_dispatch_ms` | Histogram | $< 25\text{ms}$ (P95) | Webhook payload formatting, signing, and connector dispatch |
+| `pixel.ecosystem.active_plugins` | Gauge | Monitored | Number of currently enabled third-party plugins |
+| `pixel.ecosystem.active_connectors` | Gauge | Monitored | Number of active enterprise connectors |
+
+### 4.1 Ecosystem Audit Trails
+- **Plugin Ledger (`pixel_plugins.db`)**: Records state transitions (`INSTALLED`, `ENABLED`, `DISABLED`, `REVOKED`, `QUARANTINED`), permission grants, and emergency revocation events.
+- **Backup Registry (`pixel_backups.db`)**: Records encrypted envelope revisions, scopes, checksums, and restoration timestamps.
+- **Connector Registry (`pixel_connectors.db`)**: Records connector registrations, outbound webhook deliveries, status codes, and SSRF violation rejections.
+

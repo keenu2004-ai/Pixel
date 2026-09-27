@@ -17,10 +17,14 @@ from services.control_plane.manager import ControlPlaneManager
 from services.control_plane.routers import (
     audit_router,
     auth_router,
+    backups_router,
+    connectors_router,
     conversations_router,
     devices_router,
+    marketplace_router,
     memory_router,
     overview_router,
+    plugins_router,
     scheduler_router,
     tasks_router,
     ws_router,
@@ -110,6 +114,10 @@ def create_control_plane_app(
     app.include_router(scheduler_router)
     app.include_router(memory_router)
     app.include_router(devices_router)
+    app.include_router(plugins_router)
+    app.include_router(marketplace_router)
+    app.include_router(backups_router)
+    app.include_router(connectors_router)
     app.include_router(audit_router)
     app.include_router(ws_router)
 

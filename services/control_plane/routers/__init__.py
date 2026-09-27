@@ -2,12 +2,20 @@
 
 from services.control_plane.routers.audit_router import router as audit_router
 from services.control_plane.routers.auth_router import router as auth_router
+from services.control_plane.routers.backups_router import router as backups_router
+from services.control_plane.routers.connectors_router import (
+    router as connectors_router,
+)
 from services.control_plane.routers.conversations_router import (
     router as conversations_router,
 )
 from services.control_plane.routers.devices_router import router as devices_router
+from services.control_plane.routers.marketplace_router import (
+    router as marketplace_router,
+)
 from services.control_plane.routers.memory_router import router as memory_router
 from services.control_plane.routers.overview_router import router as overview_router
+from services.control_plane.routers.plugins_router import router as plugins_router
 from services.control_plane.routers.scheduler_router import (
     router as scheduler_router,
 )
@@ -24,4 +32,8 @@ __all__ = [
     "devices_router",
     "audit_router",
     "ws_router",
+    "plugins_router",
+    "marketplace_router",
+    "backups_router",
+    "connectors_router",
 ]

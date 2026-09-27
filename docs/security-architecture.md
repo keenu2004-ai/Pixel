@@ -112,6 +112,34 @@
 ### 6.4 Non-Root Container Execution
 - **Least Privilege Execution**: Docker images execute under unprivileged user `pixeluser` (UID 10001) with root filesystem isolation and minimal read-only mounts where appropriate.
 
+---
+
+## 7. Untrusted Extensibility, Sandboxing, Zero-Knowledge Encryption & Connector Security (Phase 11)
+
+### 7.1 Plugin Sandboxing & Least Privilege
+- **Zero Default Capabilities**: Plugins receive no capabilities on install. Permissions must be explicitly requested in manifest, reviewed, and granted by an operator.
+- **Subprocess Isolation**: Untrusted plugin code runs in an isolated Python interpreter process. Inherited environment variables are stripped of all PIXEL authentication tokens, master encryption keys, and credentials.
+- **Resource Governance**: Subprocess output streams are capped at 1MB to prevent memory exhaustion DoS, and execution is strictly bounded by wall-clock timeouts (default 10s).
+- **JSON-RPC IPC**: All interaction is conducted over structured stdin/stdout JSON lines. Direct Python object sharing is prohibited.
+
+### 7.2 Static AST Vetting & Secret Detection Pipeline
+- **Forbidden AST Call Inspection**: Python source code is parsed into an AST and scanned for dangerous nodes (`eval`, `exec`, `__import__`, `subprocess`, `os.system`, `os.popen`, `shutil.rmtree`, `sys.exit`, `open`).
+- **Secret Regex Scanners**: Static scans flag hardcoded API keys (AWS, OpenAI, Anthropic, Slack, generic Bearer tokens).
+- **Automated Rejection / Quarantine**: Any critical security finding results in immediate state transition to `REJECTED` or `QUARANTINED`, preventing marketplace listing and execution.
+
+### 7.3 Zero-Knowledge Encrypted Backups
+- **Client-Side Cryptographic Envelope**: Memory facts and device configs are serialized and encrypted on the client using AES-256-GCM before transport to storage.
+- **PBKDF2-HMAC-SHA256 Derivation**: Encryption keys are derived using 100,000 iterations with 16-byte random salts.
+- **Authenticated Additional Data (AAD)**: Backup headers (backup_id, timestamp, user_id, scope, revision) are bound as AAD to prevent header tampering and replay attacks.
+- **Zero Plaintext Storage**: Storage backends (`ZeroKnowledgeBackupStorage`) only handle opaque base64-encoded ciphertexts and SHA-256 checksums without access to user encryption passphrases.
+
+### 7.4 Connector & Webhook Outbound Security
+- **SSRF Defense**: Connectors resolve hostnames and strictly block loopback (`127.0.0.1`, `localhost`), RFC1918 private IPv4 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), link-local metadata addresses (`169.254.169.254`), and multicast ranges.
+- **Cryptographic Webhook Signatures**: Outbound payloads are signed using HMAC-SHA256 (`X-Pixel-Signature: sha256=...`) with timestamp headers to prevent tampering and replay.
+- **Token-Bucket Rate Limiting & Loop Defense**: Connectors enforce configurable requests-per-second limits and event hop tracking (`MAX_HOP_COUNT = 3`) to prevent infinite webhook feedback loops.
+- **Physical Actuation L6 Policy**: Home Assistant and IoT connectors categorizing device toggles enforce L6 policy gates and biometric/UI approval for high-impact physical actuation.
+
+
 
 
 

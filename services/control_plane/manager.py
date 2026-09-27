@@ -50,6 +50,15 @@ from services.autonomous.event_bus import EventBus
 from services.autonomous.governor import TaskGovernor
 from services.autonomous.notifications import TaskNotificationManager
 from services.autonomous.scheduler import AutonomousScheduler
+from services.ecosystem.backup.manager import BackupManager
+from services.ecosystem.backup.storage import ZeroKnowledgeBackupStorage
+from services.ecosystem.connectors.registry import ConnectorRegistry
+from services.ecosystem.lifecycle import PluginLifecycleManager
+from services.ecosystem.marketplace import MarketplaceRegistry
+from services.ecosystem.sandbox.subprocess_driver import SubprocessSandboxDriver
+from services.ecosystem.skill_bridge import CommunitySkillBridge
+from services.ecosystem.vetting import SkillVettingPipeline
+from services.ecosystem.webhooks.engine import WebhookEngine
 from services.memory.manager import MemoryManager
 from services.orchestration.pki import PKIEngine
 from services.orchestration.registry import DeviceRegistry, PresenceManager
@@ -74,6 +83,11 @@ class ControlPlaneManager:
         tool_registry: ToolRegistry | None = None,
         event_bus: EventBus | None = None,
         voice_pipeline: VoicePipeline | None = None,
+        plugin_lifecycle: PluginLifecycleManager | None = None,
+        marketplace_registry: MarketplaceRegistry | None = None,
+        backup_manager: BackupManager | None = None,
+        connector_registry: ConnectorRegistry | None = None,
+        webhook_engine: WebhookEngine | None = None,
     ) -> None:
         # 1. Device and Topology
         self.pki_engine = PKIEngine()
@@ -115,10 +129,46 @@ class ControlPlaneManager:
         self.event_bus = event_bus or EventBus()
         self.voice_pipeline = voice_pipeline
 
-        # 6. Active Conversation Sessions Tracking
+        # 6. Ecosystem & Extensibility Hub (Phase 11)
+        self.sandbox_driver = SubprocessSandboxDriver()
+        self.plugin_lifecycle = plugin_lifecycle or PluginLifecycleManager(
+            db_path="data/persistence/pixel_plugins.db",
+            sandbox_driver=self.sandbox_driver,
+            base_plugins_dir="data/persistence/plugins",
+        )
+        self.skill_vetting = SkillVettingPipeline()
+        self.marketplace = marketplace_registry or MarketplaceRegistry(
+            lifecycle_manager=self.plugin_lifecycle,
+            vetting_pipeline=self.skill_vetting,
+            skills_store_dir="data/persistence/marketplace_skills",
+        )
+        self.skill_bridge = CommunitySkillBridge(
+            lifecycle_manager=self.plugin_lifecycle,
+            marketplace_registry=self.marketplace,
+            tool_registry=self.tool_registry,
+            policy_gate=self.policy_gate,
+        )
+        self.backup_storage = ZeroKnowledgeBackupStorage(
+            db_path="data/persistence/pixel_backups.db"
+        )
+        self.backup_manager = backup_manager or BackupManager(
+            storage=self.backup_storage,
+            memory_manager=self.memory_manager,
+            device_registry=self.device_registry,
+        )
+        self.connector_registry = connector_registry or ConnectorRegistry(
+            db_path="data/persistence/pixel_connectors.db"
+        )
+        self.webhook_engine = webhook_engine or WebhookEngine(
+            event_bus=self.event_bus,
+            connector_registry=self.connector_registry,
+        )
+        self.webhook_engine.start()
+
+        # 7. Active Conversation Sessions Tracking
         self._active_sessions: dict[str, ConversationSessionView] = {}
 
-        # 7. WebSocket Subscriber Queues
+        # 8. WebSocket Subscriber Queues
         self._ws_subscribers: set[asyncio.Queue[ControlPlaneStreamEvent]] = set()
 
         # Seed initial core desktop identity if registry is empty

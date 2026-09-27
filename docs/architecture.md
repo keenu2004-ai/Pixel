@@ -284,5 +284,55 @@ Notification Dispatcher (TaskNotificationManager: Deduplicated User Alerts)
 - **Tampering Defense**: Checkpoints with invalid checksums are rejected upon restoration.
 - **Idempotent Cancellation**: Cancelled tasks permanently transition to `CANCELLED` and cannot be restarted.
 
+---
+
+## 6. Community Ecosystem & Extensibility Hub (Phase 11)
+
+PIXEL enables safe, untrusted third-party extensibility through layered capability isolation, static AST vetting, zero-knowledge backups, and SSRF-defended connectors:
+
+```
+[Community Skill / Plugin Artifact]
+        │
+        ▼
+[Skill Vetting Pipeline (AST Inspection & Secret Scanner)]
+        │ (PASSED / REJECTED)
+        ▼
+[Marketplace Registry & Lifecycle Manager (SQLite Ledger)]
+        │ (Install / Grant Permissions)
+        ▼
+[Subprocess Sandbox Driver] ──(JSON-RPC IPC, Clean Env, 1MB Output Cap, Timeout)
+        │
+        ▼
+[Community Skill Bridge & Tool Adapter]
+        │
+        ├─ L6 Policy Gate (Non-bypassable Approval Cards)
+        ├─ Tool Registry Integration
+        ├─ L8 Action Verification
+        └─ Append-Only Audit Logging
+```
+
+### 6.1 Sandboxed Plugin Runtime (`SubprocessSandboxDriver`)
+- **Process Isolation**: Untrusted third-party plugins execute in separate OS subprocesses with sanitized environment variables (PIXEL tokens and secrets stripped).
+- **Resource Hardening**: 1MB maximum stdout/stderr buffer limits to prevent memory exhaustion, and configurable execution timeouts (default 10.0s).
+- **Typed JSON-RPC Protocol**: Communication operates strictly over structured JSON lines via stdin/stdout with unique request IDs.
+
+### 6.2 Security Vetting Pipeline (`SkillVettingPipeline`)
+- **AST Static Inspection**: Inspects Python source code for forbidden AST nodes and calls (`eval`, `exec`, `subprocess`, `os.system`, `shutil.rmtree`, `sys.exit`, `open`, `__import__`).
+- **Secret Scanning**: Regex patterns detect embedded API keys (AWS, OpenAI, Anthropic, Slack, generic Bearer tokens).
+- **Capability Consistency**: Ensures requested capabilities match actual code requirements without unearned privilege.
+
+### 6.3 Zero-Knowledge Encrypted Backups (`BackupCryptoEngine` & `BackupManager`)
+- **Client-Side Cryptography**: AES-256-GCM authenticated encryption with PBKDF2-HMAC-SHA256 key derivation (100,000 iterations) using 16-byte random salts and 12-byte nonces.
+- **Envelope Binding**: Authenticated Additional Data (AAD) cryptographically binds the backup header (ID, timestamp, user ID, scope, revision) to the ciphertext.
+- **Opaque Storage (`ZeroKnowledgeBackupStorage`)**: Storage backends store only opaque envelopes with SHA-256 ciphertext checksums without plaintext access to memory or device configurations.
+
+### 6.4 Outbound Webhook Engine & Enterprise Connectors (`WebhookEngine` & `BaseConnector`)
+- **SSRF Defense**: Strict IP validation prohibits connections to loopback (`127.0.0.1`), private RFC1918 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and link-local cloud metadata endpoints (`169.254.169.254`).
+- **Token-Bucket Rate Limiting**: In-memory token bucket prevents external service rate limit exhaustion.
+- **HMAC Payload Signing**: Outbound webhooks include `X-Pixel-Signature: sha256=...` and `X-Pixel-Timestamp` headers to prevent tampering and replay attacks.
+- **Loop Prevention**: Dedicated event tracking with `MAX_HOP_COUNT = 3` and delivery deduplication.
+- **Supported Connectors**: Slack Webhooks, Discord Webhooks, Home Assistant REST (with L6 physical actuation protection), and Matrix Client-Server API.
+
+
 
 

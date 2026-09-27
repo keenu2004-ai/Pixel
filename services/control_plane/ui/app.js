@@ -143,8 +143,12 @@ function loadCurrentTabData() {
   else if (state.activeTab === 'scheduler') loadScheduler();
   else if (state.activeTab === 'memory') loadMemory();
   else if (state.activeTab === 'devices') loadDevices();
+  else if (state.activeTab === 'plugins') { loadMarketplace(); loadPlugins(); }
+  else if (state.activeTab === 'backups') loadBackups();
+  else if (state.activeTab === 'connectors') { loadConnectors(); loadDeliveries(); }
   else if (state.activeTab === 'audit') loadAuditLogs();
 }
+
 
 // 4. WebSocket Real-time Stream
 function initWebSocket() {
@@ -517,6 +521,351 @@ async function loadAuditLogs() {
 }
 
 document.getElementById('btn-refresh-audit').addEventListener('click', loadAuditLogs);
+
+// 8. Phase 11: Marketplace & Plugins
+async function loadMarketplace() {
+  try {
+    const skills = await apiRequest('/api/v1/marketplace/skills');
+    const grid = document.getElementById('marketplace-grid');
+    grid.innerHTML = '';
+
+    if (!skills || skills.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No skills available in catalog.</div>';
+      return;
+    }
+
+    skills.forEach((item) => {
+      const s = item.skill;
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      const triggers = s.triggers ? s.triggers.map(t => `<span class="skill-trigger-tag">${t}</span>`).join('') : '';
+      card.innerHTML = `
+        <div>
+          <div class="skill-header">
+            <span class="skill-title">${s.display_name}</span>
+            <span class="badge ${item.verified ? 'badge-success' : 'badge-warning'}">${item.verified ? 'VERIFIED' : 'COMMUNITY'}</span>
+          </div>
+          <div class="skill-publisher">by <code>${s.publisher}</code> | v${s.version}</div>
+          <div class="skill-desc">${s.description}</div>
+          <div class="skill-meta">
+            <span>⭐ ${item.rating.toFixed(1)}</span>
+            <span>⬇️ ${item.downloads_count} installs</span>
+            <span>Caps: <code>${s.capabilities.length}</code></span>
+          </div>
+          <div class="skill-triggers">${triggers}</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="installSkill('${s.skill_id}')">Install & Enable</button>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (err) {
+    console.error('Error loading marketplace', err);
+  }
+}
+
+window.installSkill = async function (skillId) {
+  try {
+    await apiRequest('/api/v1/marketplace/install', 'POST', { skill_id: skillId, auto_enable: true });
+    showToast(`Installed skill '${skillId}'`, 'success');
+    loadPlugins();
+    loadMarketplace();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+async function loadPlugins() {
+  try {
+    const plugins = await apiRequest('/api/v1/plugins');
+    const tbody = document.getElementById('plugins-table-body');
+    tbody.innerHTML = '';
+
+    if (!plugins || plugins.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No plugins currently installed.</td></tr>';
+      return;
+    }
+
+    plugins.forEach((p) => {
+      const isEnabled = p.state === 'enabled';
+      const isRevoked = p.state === 'revoked';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><code>${p.plugin_id}</code></td>
+        <td><strong>${p.name}</strong></td>
+        <td>v${p.version}</td>
+        <td>${p.publisher}</td>
+        <td><span class="badge ${isEnabled ? 'badge-success' : isRevoked ? 'badge-danger' : 'badge-warning'}">${p.state}</span></td>
+        <td><code>${p.granted_capabilities.join(', ') || 'None'}</code></td>
+        <td>
+          ${!isRevoked ? (isEnabled ? `<button class="btn btn-sm btn-outline" onclick="togglePlugin('${p.plugin_id}', 'disable')">Disable</button>` : `<button class="btn btn-sm btn-primary" onclick="togglePlugin('${p.plugin_id}', 'enable')">Enable</button>`) : ''}
+          ${!isRevoked ? `<button class="btn btn-sm btn-danger" onclick="revokePlugin('${p.plugin_id}')">Revoke</button>` : '<span style="color:var(--state-error);">REVOKED</span>'}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error loading plugins', err);
+  }
+}
+
+window.togglePlugin = async function (pluginId, action) {
+  try {
+    await apiRequest(`/api/v1/plugins/${pluginId}/${action}`, 'POST');
+    showToast(`Plugin '${pluginId}' ${action}d`, 'success');
+    loadPlugins();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+window.revokePlugin = async function (pluginId) {
+  if (!confirm(`Permanently revoke plugin '${pluginId}'?`)) return;
+  try {
+    await apiRequest(`/api/v1/plugins/${pluginId}/revoke`, 'POST');
+    showToast(`Plugin '${pluginId}' revoked`, 'info');
+    loadPlugins();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+document.getElementById('btn-refresh-plugins').addEventListener('click', loadPlugins);
+document.getElementById('btn-search-marketplace').addEventListener('click', async () => {
+  const q = document.getElementById('marketplace-search-input').value.trim();
+  try {
+    const skills = await apiRequest(`/api/v1/marketplace/skills?query=${encodeURIComponent(q)}`);
+    const grid = document.getElementById('marketplace-grid');
+    grid.innerHTML = '';
+    skills.forEach((item) => {
+      const s = item.skill;
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      card.innerHTML = `
+        <div>
+          <div class="skill-header">
+            <span class="skill-title">${s.display_name}</span>
+            <span class="badge ${item.verified ? 'badge-success' : 'badge-warning'}">${item.verified ? 'VERIFIED' : 'COMMUNITY'}</span>
+          </div>
+          <div class="skill-desc">${s.description}</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="installSkill('${s.skill_id}')">Install & Enable</button>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+// 9. Phase 11: Zero-Knowledge Backups
+async function loadBackups() {
+  try {
+    const backups = await apiRequest('/api/v1/backups');
+    const tbody = document.getElementById('backups-table-body');
+    tbody.innerHTML = '';
+
+    if (!backups || backups.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No encrypted backup envelopes available.</td></tr>';
+      return;
+    }
+
+    backups.forEach((b) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><code>${b.backup_id}</code></td>
+        <td><span class="badge badge-info">${b.scope}</span></td>
+        <td>rev ${b.revision}</td>
+        <td>${(b.size_bytes / 1024).toFixed(1)} KB</td>
+        <td><code>${b.ciphertext_sha256.substring(0, 12)}...</code></td>
+        <td>${new Date(b.timestamp).toLocaleString()}</td>
+        <td>
+          <button class="btn btn-sm btn-primary" onclick="openRestoreModal('${b.backup_id}')">Restore</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteBackup('${b.backup_id}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error loading backups', err);
+  }
+}
+
+window.openRestoreModal = function (backupId) {
+  document.getElementById('restore-target-backup-id').value = backupId;
+  document.getElementById('restore-backup-modal').style.display = 'flex';
+};
+
+window.deleteBackup = async function (backupId) {
+  if (!confirm(`Permanently delete encrypted backup envelope '${backupId}'?`)) return;
+  try {
+    await apiRequest(`/api/v1/backups/${backupId}`, 'DELETE');
+    showToast('Backup deleted', 'info');
+    loadBackups();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+const createBackupModal = document.getElementById('create-backup-modal');
+document.getElementById('btn-open-create-backup').addEventListener('click', () => { createBackupModal.style.display = 'flex'; });
+document.getElementById('btn-close-backup-modal').addEventListener('click', () => { createBackupModal.style.display = 'none'; });
+
+document.getElementById('create-backup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const passphrase = document.getElementById('backup-passphrase').value;
+  const scope = document.getElementById('backup-scope').value;
+
+  try {
+    await apiRequest('/api/v1/backups/create', 'POST', { passphrase, scope });
+    createBackupModal.style.display = 'none';
+    showToast('Created client-side encrypted backup', 'success');
+    loadBackups();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+const restoreBackupModal = document.getElementById('restore-backup-modal');
+document.getElementById('btn-close-restore-modal').addEventListener('click', () => { restoreBackupModal.style.display = 'none'; });
+
+document.getElementById('restore-backup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const backup_id = document.getElementById('restore-target-backup-id').value;
+  const passphrase = document.getElementById('restore-passphrase').value;
+
+  try {
+    const res = await apiRequest('/api/v1/backups/restore', 'POST', { backup_id, passphrase });
+    restoreBackupModal.style.display = 'none';
+    if (res.success) {
+      showToast(`Restored ${res.restored_items_count} items in ${res.duration_ms.toFixed(1)}ms`, 'success');
+    } else {
+      showToast(`Restore failed: ${res.error}`, 'error');
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+// 10. Phase 11: Connectors & Webhooks
+async function loadConnectors() {
+  try {
+    const connectors = await apiRequest('/api/v1/connectors');
+    const grid = document.getElementById('connectors-grid');
+    grid.innerHTML = '';
+
+    if (!connectors || connectors.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No outbound connectors registered.</div>';
+      return;
+    }
+
+    connectors.forEach((c) => {
+      const card = document.createElement('div');
+      card.className = 'connector-card';
+      card.innerHTML = `
+        <div class="connector-card-header">
+          <span style="font-weight:600;">${c.name}</span>
+          <span class="connector-type-badge">${c.connector_type}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);word-break:break-all;margin-bottom:8px;">${c.target_url}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">Rate limit: ${c.rate_limit_per_min} req/min | Retries: ${c.max_retries}</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-outline" onclick="testConnector('${c.connector_id}')">Send Test Ping</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteConnector('${c.connector_id}')">Delete</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (err) {
+    console.error('Error loading connectors', err);
+  }
+}
+
+window.testConnector = async function (connectorId) {
+  try {
+    const res = await apiRequest(`/api/v1/connectors/test?connector_id=${connectorId}`, 'POST');
+    if (res.success) {
+      showToast(`Test ping successful (${res.latency_ms.toFixed(1)}ms)`, 'success');
+    } else {
+      showToast(`Test failed: ${res.error_message}`, 'error');
+    }
+    loadDeliveries();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+window.deleteConnector = async function (connectorId) {
+  if (!confirm(`Delete connector '${connectorId}'?`)) return;
+  try {
+    await apiRequest(`/api/v1/connectors/${connectorId}`, 'DELETE');
+    showToast('Connector deleted', 'info');
+    loadConnectors();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+async function loadDeliveries() {
+  try {
+    const deliveries = await apiRequest('/api/v1/connectors/deliveries?limit=30');
+    const tbody = document.getElementById('deliveries-table-body');
+    tbody.innerHTML = '';
+
+    if (!deliveries || deliveries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No webhook deliveries recorded.</td></tr>';
+      return;
+    }
+
+    deliveries.forEach((d) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><code>${d.delivery_id}</code></td>
+        <td><strong>${d.connector_id}</strong></td>
+        <td><code>${d.event_type}</code></td>
+        <td><span class="badge ${d.success ? 'badge-success' : 'badge-danger'}">${d.status_code || 'ERR'}</span></td>
+        <td>${d.latency_ms.toFixed(1)}ms</td>
+        <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error loading deliveries', err);
+  }
+}
+
+document.getElementById('btn-refresh-deliveries').addEventListener('click', loadDeliveries);
+
+const addConnectorModal = document.getElementById('add-connector-modal');
+document.getElementById('btn-open-add-connector').addEventListener('click', () => { addConnectorModal.style.display = 'flex'; });
+document.getElementById('btn-close-connector-modal').addEventListener('click', () => { addConnectorModal.style.display = 'none'; });
+
+document.getElementById('add-connector-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('connector-name').value.trim();
+  const connector_type = document.getElementById('connector-type').value;
+  const target_url = document.getElementById('connector-target-url').value.trim();
+  const signing_secret = document.getElementById('connector-secret').value.trim() || null;
+  const rate_limit_per_min = parseInt(document.getElementById('connector-rate-limit').value);
+  const connector_id = `conn_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+
+  try {
+    await apiRequest('/api/v1/connectors', 'POST', {
+      connector_id,
+      name,
+      connector_type,
+      target_url,
+      signing_secret,
+      rate_limit_per_min,
+      status: 'active',
+    });
+    addConnectorModal.style.display = 'none';
+    showToast('Connector registered', 'success');
+    loadConnectors();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
 
 // 6. Modals & Action Approval Card Handling
 const taskModal = document.getElementById('task-modal');

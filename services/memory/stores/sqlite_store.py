@@ -42,14 +42,23 @@ class SQLiteMemoryStore(BaseMemoryStore):
         embedding_provider: BaseEmbeddingProvider | None = None,
     ) -> None:
         self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        if str(self.db_path) != ":memory:":
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.embedding_provider = embedding_provider or DeterministicHashEmbeddingProvider()
+        self._conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        self._conn.row_factory = sqlite3.Row
         self._init_schema()
 
     def _get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        return conn
+        return self._conn
+
+    def close(self) -> None:
+        """Close SQLite database connection."""
+        if hasattr(self, "_conn") and self._conn:
+            try:
+                self._conn.close()
+            except Exception:
+                pass
 
     def _init_schema(self) -> None:
         """Initializes database tables and indexes."""
