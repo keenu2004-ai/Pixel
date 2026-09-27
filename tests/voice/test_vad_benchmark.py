@@ -4,6 +4,7 @@ Measures cold-start initialization latency and steady-state warm inference per-f
 Excluded from normal CI via @pytest.mark.voice_hw.
 """
 
+import hashlib
 import os
 import time
 
@@ -11,7 +12,11 @@ import numpy as np
 import pytest
 
 from packages.contracts.events import AudioFrame
-from services.voice_gateway.vad.silero_vad import SileroVADConfig, SileroVADProvider
+from services.voice_gateway.vad.silero_vad import (
+    SILERO_V5_OFFICIAL_SHA256,
+    SileroVADConfig,
+    SileroVADProvider,
+)
 
 
 def _generate_synthetic_pcm_frame(num_samples: int = 512, frequency_hz: float = 440.0) -> AudioFrame:
@@ -40,8 +45,17 @@ async def test_silero_vad_latency_benchmark() -> None:
     except ImportError:
         pytest.skip("onnxruntime is not installed. Install with 'pip install onnxruntime'.")
 
-    config = SileroVADConfig(model_path=model_path)
+    # Verify model checksum
+    sha256 = hashlib.sha256()
+    with open(model_path, "rb") as f:
+        while chunk := f.read(65536):
+            sha256.update(chunk)
+    actual_hash = sha256.hexdigest().lower()
+    assert actual_hash == SILERO_V5_OFFICIAL_SHA256.lower(), "Local model failed SHA-256 integrity check!"
+
+    config = SileroVADConfig(model_path=model_path, expected_sha256=SILERO_V5_OFFICIAL_SHA256)
     test_frame = _generate_synthetic_pcm_frame()
+    file_size_mb = os.path.getsize(model_path) / (1024 * 1024)
 
     # 1. Measure Cold Start (Instantiate + Initialize + First Inference)
     cold_start_t0 = time.perf_counter()
@@ -51,6 +65,7 @@ async def test_silero_vad_latency_benchmark() -> None:
     cold_start_ms = (time.perf_counter() - cold_start_t0) * 1000.0
 
     assert first_event is not None
+    assert 0.0 <= first_event.speech_probability <= 1.0
     assert provider.is_available() is True
 
     # 2. Measure Warm Runtime Inference (50 consecutive frames)
@@ -61,6 +76,7 @@ async def test_silero_vad_latency_benchmark() -> None:
         dt_ms = (time.perf_counter() - t0) * 1000.0
         latencies_ms.append(dt_ms)
         assert ev is not None
+        assert 0.0 <= ev.speech_probability <= 1.0
 
     avg_warm_ms = float(np.mean(latencies_ms))
     p95_warm_ms = float(np.percentile(latencies_ms, 95))
@@ -69,14 +85,21 @@ async def test_silero_vad_latency_benchmark() -> None:
 
     await provider.shutdown()
 
-    print("\n" + "=" * 60)
-    print("SILERO ONNX VAD BENCHMARK RESULTS")
-    print("=" * 60)
-    print(f"Cold-Start Latency (Load + Init + 1st Frame) : {cold_start_ms:.2f} ms")
-    print(f"Warm Inference Latency (Average per 32ms frame): {avg_warm_ms:.3f} ms")
-    print(f"Warm Inference P95 Latency                    : {p95_warm_ms:.3f} ms")
-    print(f"Warm Inference Min / Max                      : {min_warm_ms:.3f} / {max_warm_ms:.3f} ms")
-    print("=" * 60)
+    print("\n" + "=" * 65)
+    print("PIXEL SILERO ONNX VAD BENCHMARK SPECIFICATION")
+    print("=" * 65)
+    print(f"Model Path           : {model_path} ({file_size_mb:.2f} MB)")
+    print(f"SHA-256 Digest       : {actual_hash[:16]}... (Verified Official v5)")
+    print("Execution Provider   : CPUExecutionProvider (Single-Threaded)")
+    print("Audio Frame Spec     : PCM 16-bit Mono @ 16kHz (512 samples / 32ms)")
+    print("Warm Iterations      : 50 frames")
+    print("-" * 65)
+    print(f"Cold-Start Latency   : {cold_start_ms:.2f} ms (Load + Session + 1st Frame)")
+    print(f"Warm Inference (Avg) : {avg_warm_ms:.3f} ms / frame (~{32.0 / avg_warm_ms:.1f}x Real-time)")
+    print(f"Warm Inference (P95) : {p95_warm_ms:.3f} ms / frame")
+    print(f"Warm Inference Min   : {min_warm_ms:.3f} ms")
+    print(f"Warm Inference Max   : {max_warm_ms:.3f} ms")
+    print("=" * 65)
 
-    # Sanity threshold assertions: Warm inference on CPU should easily be < 10ms per 32ms frame
+    # Sanity threshold assertions: Warm inference on CPU must easily be < 15ms per 32ms frame
     assert avg_warm_ms < 15.0, f"Average warm inference latency {avg_warm_ms}ms exceeded 15ms ceiling"

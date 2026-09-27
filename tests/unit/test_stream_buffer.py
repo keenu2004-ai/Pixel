@@ -1,5 +1,7 @@
 """Unit tests for AudioStreamBuffer format validation, backpressure, and async streaming."""
 
+import asyncio
+
 import pytest
 
 from packages.contracts.events import AudioFrame
@@ -93,6 +95,46 @@ async def test_overflow_strategy_raise() -> None:
 
     with pytest.raises(BufferOverflowError):
         await buffer.push(_create_frame())
+
+
+@pytest.mark.asyncio
+async def test_overflow_strategy_block_and_unblock_on_pop() -> None:
+    buffer = AudioStreamBuffer(max_frames=1, overflow_strategy=OverflowStrategy.BLOCK)
+    f1 = _create_frame(num_samples=10)
+    f2 = _create_frame(num_samples=20)
+
+    await buffer.push(f1)
+
+    # Producer tries to push when buffer is full
+    push_task = asyncio.create_task(buffer.push(f2))
+    await asyncio.sleep(0.01)
+    assert not push_task.done()
+
+    # Consumer pops f1 -> buffer unblocks and f2 is accepted
+    popped = await buffer.pop()
+    assert popped == f1
+    res = await push_task
+    assert res is True
+    assert buffer.buffered_frames_count == 1
+
+
+@pytest.mark.asyncio
+async def test_overflow_strategy_block_unblock_on_close() -> None:
+    buffer = AudioStreamBuffer(max_frames=1, overflow_strategy=OverflowStrategy.BLOCK)
+    f1 = _create_frame(num_samples=10)
+    f2 = _create_frame(num_samples=20)
+
+    await buffer.push(f1)
+
+    # Producer blocks on full buffer
+    push_task = asyncio.create_task(buffer.push(f2))
+    await asyncio.sleep(0.01)
+    assert not push_task.done()
+
+    # Close buffer -> blocked push safely wakes up and returns False (no deadlock)
+    await buffer.close()
+    res = await push_task
+    assert res is False
 
 
 @pytest.mark.asyncio

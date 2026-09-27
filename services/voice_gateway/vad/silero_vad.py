@@ -13,6 +13,9 @@ from packages.core.interfaces.vad import BaseVADProvider
 
 logger = logging.getLogger("pixel.voice.silero_vad")
 
+# Official Silero VAD v5 ONNX SHA-256 digest
+SILERO_V5_OFFICIAL_SHA256 = "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
+
 
 class SileroModelIntegrityError(PixelException):
     """Raised when Silero model weights fail file verification or checksum."""
@@ -30,7 +33,7 @@ class SileroVADConfig:
     def __init__(
         self,
         model_path: str = "data/models/silero_vad.onnx",
-        expected_sha256: str | None = None,
+        expected_sha256: str | None = SILERO_V5_OFFICIAL_SHA256,
         threshold: float = 0.5,
         neg_threshold: float = 0.35,
         sample_rate: int = 16000,
