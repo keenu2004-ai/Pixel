@@ -28,10 +28,13 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.10.0"
 ]
+voice = [
+    "onnxruntime>=1.17.0"
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["packages*"]
+include = ["packages*", "services*"]
 
 [tool.ruff]
 target-version = "py311"
@@ -42,13 +45,16 @@ select = ["E", "F", "W", "I", "UP", "B"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra -q"
+addopts = "-ra -q -m 'not voice_hw'"
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
+markers = [
+    "voice_hw: marks tests requiring local voice model weights or hardware (deselect with -m 'not voice_hw')",
+]

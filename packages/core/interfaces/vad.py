@@ -17,3 +17,13 @@ class BaseVADProvider(ABC):
     def reset(self, session_id: str) -> None:
         """Resets internal VAD state for a session."""
         pass
+
+    @abstractmethod
+    def is_available(self) -> bool:
+        """Returns True if the underlying model/runtime is loaded and ready for inference."""
+        pass
+
+    @abstractmethod
+    async def shutdown(self) -> None:
+        """Releases all model runtime sessions and memory resources."""
+        pass
