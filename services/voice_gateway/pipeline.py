@@ -1,7 +1,7 @@
 """Voice Pipeline Orchestrator.
 
-Integrates AudioStreamBuffer, VAD, Wake Word, STT, and TTS with zero-latency
-barge-in interruption and state transitions.
+Integrates AudioStreamBuffer, VAD, Wake Word, STT, Deterministic Intent Engine,
+and TTS with zero-latency barge-in interruption and state transitions.
 """
 
 import logging
@@ -18,6 +18,7 @@ from packages.core.interfaces.stt import BaseSTTProvider
 from packages.core.interfaces.tts import BaseTTSProvider
 from packages.core.interfaces.vad import BaseVADProvider
 from packages.core.interfaces.wake import BaseWakeProvider
+from services.intent_engine.engine import DeterministicIntentEngine
 from services.voice_gateway.session import VoiceSession
 
 logger = logging.getLogger(__name__)
@@ -32,24 +33,25 @@ class VoicePipeline:
         wake_provider: BaseWakeProvider,
         stt_provider: BaseSTTProvider,
         tts_provider: BaseTTSProvider,
+        intent_engine: DeterministicIntentEngine | None = None,
         intent_handler: Callable[[str, str], Any] | None = None,
     ) -> None:
         self.vad_provider = vad_provider
         self.wake_provider = wake_provider
         self.stt_provider = stt_provider
         self.tts_provider = tts_provider
-        self.intent_handler = intent_handler or self._default_intent_handler
+        self.intent_engine = intent_engine or DeterministicIntentEngine()
+        self.intent_handler = intent_handler
         self._speech_buffer = bytearray()
 
-    @staticmethod
-    async def _default_intent_handler(text: str, session_id: str) -> str:
-        """Default intent mock handler generating intelligent voice replies."""
-        t = text.lower().strip()
-        if "hello" in t or "hey" in t or "namaste" in t:
-            return "Namaste! Main Pixel hoon. Aapki kya madad kar sakta hoon?"
-        if "time" in t:
-            return "Abhi ka samay check kar raha hoon."
-        return f"Maine suna: {text}. Main aapki madad karne ke liye taiyaar hoon."
+    async def _resolve_intent_response(self, text: str, session_id: str) -> str:
+        """Executes intent through DeterministicIntentEngine or custom intent handler."""
+        if self.intent_handler is not None:
+            res = await self.intent_handler(text, session_id)
+            return str(res)
+
+        response_text, _, _ = await self.intent_engine.handle_transcript(text, session_id=session_id)
+        return response_text
 
     async def process_frame(
         self,
@@ -109,8 +111,8 @@ class VoicePipeline:
                 yield transcript
 
                 if transcript.text.strip():
-                    # Handle intent
-                    response_text = await self.intent_handler(transcript.text, session.session_id)
+                    # Handle intent via real DeterministicIntentEngine
+                    response_text = await self._resolve_intent_response(transcript.text, session.session_id)
 
                     # Transition to SPEAKING and synthesize TTS
                     speaking_evt = session.transition_to(
