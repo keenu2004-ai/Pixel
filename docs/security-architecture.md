@@ -28,3 +28,27 @@
   - `risk_class`
   - `policy_decision` (`ALLOW` / `DENY` / `USER_APPROVED`)
   - `execution_result_status`
+
+---
+
+## 3. Multi-Device Orchestration Security Model
+
+### 3.1 Cryptographic Identity & PKI
+- **Root CA Trust Anchor**: PIXEL Core acts as the root of trust (`PKIEngine`), maintaining a secure Root CA key and issuing signed X.509/PIXEL PEM certificates with bounded validity windows.
+- **Strict Key Separation**: Private keys never leave their host device. Public keys / CSRs are exchanged during authenticated pairing.
+- **Fingerprinting**: SHA-256 fingerprints bind certificates to their device identity in the canonical `DeviceRegistry`.
+
+### 3.2 Ephemeral Challenge-Response Pairing & Replay Defense
+- **Explicit Authorization**: LAN presence does not imply trust. Unpaired devices receive a time-bounded challenge with a 6-digit cryptographic PIN requiring explicit user confirmation.
+- **Anti-Brute-Force Lockout**: Pairing challenges lock out and transition device state to `BLOCKED` after 3 failed attempts.
+- **Nonce Single-Use**: Challenge nonces and tokens are immediately purged upon verification, preventing replay attacks.
+
+### 3.3 Dynamic Revocation Ledger
+- **Instant Revocation**: Blacklisting a device or serial immediately halts mTLS communication, revokes active sessions, and prevents re-pairing without administrative reset.
+- **No Stale Privilege**: Disconnected or swept stale devices ($>30\text{s}$ without heartbeat) lose operational authority.
+
+### 3.4 Cross-Device Handoff & Concurrency Security
+- **Context Sanitization**: Conversation context migration strictly strips secrets, API keys, credentials, and authentication tokens (`_sanitize_context`) before replication.
+- **Optimistic Concurrency Leases**: Task migration issues a cryptographic `concurrency_lease_token` and increments the canonical task version, preventing split-brain dual-node execution or conflicting mutations.
+- **Non-Bypassable L6 Policy Invariance**: Approvals (`ApprovalCard`) remain cryptographically bound to `task_id`, `tool_name`, and `confirmation_token`, preventing privilege escalation across devices.
+

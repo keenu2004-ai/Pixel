@@ -133,3 +133,46 @@ The architecture cleanly separates hardware perception, stream routing, intent c
 
 ### L10 — Observability Layer
 - **Role**: Full-lifecycle tracing using OpenTelemetry standards, tracking TTFT (Time to First Token), STT latency, VAD latency, tool execution time, and token economics.
+
+---
+
+## 3. Multi-Device Orchestration & Satellite Topology
+
+PIXEL deploys a **Central-Authority Controlled Satellite Topology** with asymmetric cryptography and mutual TLS (mTLS):
+
+```
+                   PIXEL CORE (Root CA & Policy Authority)
+                                    │
+         ┌──────────────────────────┼──────────────────────────┐
+         │                          │                          │
+  Primary Desktop Node        Android Mobile            Satellite Nodes
+(Desktop/Code Execution)   (Voice & Notifications)   (Room Mic/Speaker/Wake)
+         │                          │                          │
+         └──────────────────────────┼──────────────────────────┘
+                                    │
+                    Canonical Device & Presence Registry
+                                    │
+                     Sliding-Window Wake Arbiter
+                                    │
+                     Context & Task Handoff Lease
+```
+
+### 3.1 PKI & mTLS Cryptographic Pairing
+- **Root CA Authority (`PKIEngine`)**: Central PIXEL instance holds the self-signed Root CA and issues X.509/PIXEL PEM certificates with bounded validity and unique serials.
+- **Explicit Pairing Flow**: Unpaired devices submit a `PairingRequest` with their public key. Core issues a 6-digit numeric PIN challenge with anti-brute-force rate limiting (maximum 3 attempts) and anti-replay nonce consumption upon authorization.
+- **Revocation Ledger**: Compromised or decommissioned devices have their certificate serial and device ID blacklisted, immediately terminating mTLS handshakes and blocking re-pairing.
+
+### 3.2 Canonical Device & Presence Registries
+- **Device Registry (`DeviceRegistry`)**: Tracks hardware capabilities (`DESKTOP_CONTROL`, `ANDROID_CONTROL`, `CODE_EXECUTION`, `MICROPHONE`, `SPEAKER`, `DISPLAY`, `WAKE_WORD`) and cryptographic trust states.
+- **Presence Manager (`PresenceManager`)**: Tracks real-time heartbeats with RTT latency, battery telemetry, and charging state. Devices failing to heartbeat within 30 seconds are automatically swept to `OFFLINE` status.
+
+### 3.3 Multi-Satellite Wake-Event Arbitration (`WakeArbiter`)
+- **Sliding-Window Deduplication**: Wake detections from multiple room microphones within $1500\text{ms}$ of an utterance are clustered into a single event group.
+- **Deterministic Composite Scoring**: Candidates are ranked using:
+  $$\text{Score} = (\text{Confidence} \times 50) + \text{SNR}_{\text{dB}} - (\text{Distance}_{\text{m}} \times 10) - (\text{RTT}_{\text{ms}} \times 0.1) + \text{InteractionOwnerBoost}$$
+- **Single Active Session**: The highest-scoring candidate is elected active interaction owner; all other satellites receive suppression notifications to prevent dual-audio capture or double execution.
+
+### 3.4 Cross-Device Context & Task Handoff (`HandoffManager`)
+- **Scoped Context Migration**: Strips sensitive credentials, API keys, and bearer tokens (`_sanitize_context`) before replication between trusted, online nodes.
+- **Optimistic Concurrency Leased Task Migration**: Emits cryptographically secure `concurrency_lease_token`s and increments task checkpoint versions, preventing stale updates or split-brain duplicate task runs while strictly preserving pending L6 `ApprovalCard` authorization bindings.
+
