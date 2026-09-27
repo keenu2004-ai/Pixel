@@ -60,6 +60,7 @@ from services.ecosystem.skill_bridge import CommunitySkillBridge
 from services.ecosystem.vetting import SkillVettingPipeline
 from services.ecosystem.webhooks.engine import WebhookEngine
 from services.memory.manager import MemoryManager
+from services.multimodal.manager import MultimodalPerceptionManager
 from services.orchestration.pki import PKIEngine
 from services.orchestration.registry import DeviceRegistry, PresenceManager
 from services.personalization.manager import PersonalizationManager
@@ -81,6 +82,7 @@ class ControlPlaneManager:
         drift_detector: GoalDriftDetector | None = None,
         memory_manager: MemoryManager | None = None,
         personalization_manager: PersonalizationManager | None = None,
+        multimodal_manager: MultimodalPerceptionManager | None = None,
         policy_gate: AgentPolicyGate | None = None,
         tool_registry: ToolRegistry | None = None,
         event_bus: EventBus | None = None,
@@ -107,9 +109,14 @@ class ControlPlaneManager:
         if not self.memory_manager.personalization_manager:
             self.memory_manager.personalization_manager = self.personalization_manager
 
+        # 2b. Multimodal Perception & Vision (Phase 16)
+        self.multimodal_manager = multimodal_manager or MultimodalPerceptionManager()
+
         # 3. Policy and Verification
         self.policy_gate = policy_gate or AgentPolicyGate()
         self.tool_registry = tool_registry or ToolRegistry()
+        for tool in self.multimodal_manager.tools:
+            self.tool_registry.register_tool(tool)
         self.action_verifier = ActionVerifier()
 
         # 4. Autonomous Scheduler & Engine

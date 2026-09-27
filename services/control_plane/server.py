@@ -26,6 +26,7 @@ from services.control_plane.routers import (
     killswitches_router,
     marketplace_router,
     memory_router,
+    multimodal_router,
     overview_router,
     personalization_router,
     plugins_router,
@@ -120,6 +121,7 @@ def create_control_plane_app(
     app.include_router(scheduler_router)
     app.include_router(memory_router)
     app.include_router(personalization_router)
+    app.include_router(multimodal_router)
     app.include_router(devices_router)
     app.include_router(plugins_router)
     app.include_router(marketplace_router)

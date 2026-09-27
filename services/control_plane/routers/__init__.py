@@ -23,6 +23,9 @@ from services.control_plane.routers.marketplace_router import (
     router as marketplace_router,
 )
 from services.control_plane.routers.memory_router import router as memory_router
+from services.control_plane.routers.multimodal_router import (
+    router as multimodal_router,
+)
 from services.control_plane.routers.overview_router import router as overview_router
 from services.control_plane.routers.personalization_router import (
     router as personalization_router,
@@ -46,6 +49,7 @@ __all__ = [
     "scheduler_router",
     "memory_router",
     "personalization_router",
+    "multimodal_router",
     "devices_router",
     "audit_router",
     "ws_router",

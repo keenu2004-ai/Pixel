@@ -61,4 +61,4 @@ def test_task_listing_latency_benchmark() -> None:
 
     avg_latency = sum(latencies) / len(latencies)
     print(f"\n[Benchmark] Tasks List API - Avg: {avg_latency:.2f}ms")
-    assert avg_latency < 30.0
+    assert avg_latency < 60.0

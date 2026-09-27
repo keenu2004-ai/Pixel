@@ -101,7 +101,9 @@ All engineering contracts and design specifications are rigorously documented un
 - [x] **Phase 12: Continuous Autonomous Evolution & Self-Healing Swarms** (Multi-agent swarms, self-healing diagnostic loops, distributed edge memory mesh, differentially private model evolution)
 - [x] **Phase 13: Real-World Assistant Integration & End-to-End Execution** (Real microphone/voice streaming with barge-in, native Android action adapters, sandboxed filesystem/terminal/browser tools, multi-device handoffs, E2E missions)
 - [x] **Phase 14: Production Reality, Daily-Driver Hardening & Personal Assistant Readiness** (24-hour soak stability, zero-loss crash recovery, Doze & lifecycle hardening, multi-turn ambiguity resolution, transactional schema rollback, objective daily-driver scorecard)
-- [ ] **Phase 15: Edge AI Swarm Deployment & Autonomous Fleet Operations** (Cross-platform binary packaging, peer-to-peer gossip protocol, fleet operations)
+- [x] **Phase 15: Intelligence, Personalization & Adaptive Personal Assistant** (Formal user model, reversible learning loop, habit routine engine, goal continuity, personal vocabulary resolution, context ranking, multilingual Hinglish adaptation)
+- [x] **Phase 16: Multimodal Perception, Vision & World Understanding** (Multilingual OCR, structured screen semantic modeling, zero-guessing UI grounding, sensitive screen redaction, ephemeral camera lifecycle, visual verification, prompt injection defense, multimodal context fusion)
+- [ ] **Phase 17: Edge AI Swarm Deployment & Autonomous Fleet Operations** (Cross-platform binary packaging, peer-to-peer gossip protocol, fleet operations)
 
 ---
 

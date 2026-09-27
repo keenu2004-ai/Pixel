@@ -14,6 +14,7 @@ from services.intent_engine.parser import DeterministicIntentParser
 from services.intent_engine.response_generator import ResponseGenerator
 from services.intent_engine.router import DeterministicRouter
 from services.memory.manager import MemoryManager
+from services.multimodal.manager import MultimodalPerceptionManager
 from services.os_control.mock_adapter import MockOSAdapter
 from services.rag.retriever import RAGRetriever
 
@@ -29,12 +30,14 @@ class DeterministicIntentEngine:
         memory_manager: MemoryManager | None = None,
         rag_retriever: RAGRetriever | None = None,
         agent_engine: AgentRuntimeEngine | None = None,
+        multimodal_manager: MultimodalPerceptionManager | None = None,
     ) -> None:
         self.os_adapter = os_adapter or MockOSAdapter()
         self.router = DeterministicRouter(os_adapter=self.os_adapter)
         self.parser = DeterministicIntentParser()
         self.memory_manager = memory_manager
         self.rag_retriever = rag_retriever
+        self.multimodal_manager = multimodal_manager or MultimodalPerceptionManager()
         self.agent_engine = agent_engine or AgentRuntimeEngine(
             os_adapter=self.os_adapter,
             memory_manager=self.memory_manager,
@@ -84,6 +87,30 @@ class DeterministicIntentEngine:
                 "sun",
             ]
         )
+
+        # 4.0 Multimodal Screen & Visual Queries (Voice + Vision, Hindi / Hinglish)
+        if any(
+            w in t
+            for w in [
+                "look at this",
+                "what is on my screen",
+                "what's on my screen",
+                "screen pe kya",
+                "screen pe error",
+                "is screen pe",
+                "read the screen",
+                "explain what you see",
+                "ye screen pe",
+            ]
+        ):
+            ctx_payload = await self.multimodal_manager.process_screen_query(
+                query=transcript_text,
+            )
+            if is_hindi or "kya" in t or "pe" in t:
+                reply = f"Screen dekha: {ctx_payload.active_screen_summary}. Elements: {ctx_payload.visible_elements_summary or 'None'}."
+            else:
+                reply = f"I observe your screen: {ctx_payload.active_screen_summary}. Visible elements: {ctx_payload.visible_elements_summary or 'None'}."
+            return reply, packet, {"multimodal_context": ctx_payload.model_dump()}
 
         # 4.1 Memory explanation queries ("what do you remember about me", "why do you think that")
         if "what do you remember" in t or "kya yaad hai" in t:
