@@ -67,7 +67,28 @@
 
 ### 4.3 Local LLM Security & Non-Bypassable Policy Gate
 - **Zero Direct Tool Execution**: Local models possess no direct execution authority. All generated tool calls must flow through the standard PIXEL `ToolRegistry` and `AgentPolicyGate`.
-- **Identical Risk Classification**: Tools invoked by local models receive identical risk-class evaluations (LOW, MEDIUM, HIGH, CRITICAL) and require explicit human-in-the-loop approval cards for high-risk actions.
+- **Identical Risk Classification**: Tools invoked by local models receive identical risk-class evaluations (READ, REVERSIBLE_WRITE, EXTERNAL_COMMUNICATION, HIGH_IMPACT) and require explicit human-in-the-loop approval cards for high-risk actions.
 - **Policy-Enforced Remote Fallback**: The model router prohibits silent fallback to cloud models. Context is only transmitted remotely if explicitly authorized by user configuration (`allow_remote_fallback=True`).
+
+---
+
+## 5. Bounded Autonomy, Goal Drift Defense & Execution Limits
+
+### 5.1 Immutable Goal Contracts & Target Boundary Defense
+- **Goal Immutability**: The authorized `GoalContract` (objective, success criteria, allowed targets, prohibited actions) cannot be mutated or redefined by runtime model output or external event payloads.
+- **Scope & Target Isolation**: All tool invocations and filesystem/network accesses are validated against `goal.allowed_targets`. Access to undeclared targets is blocked and triggers `DRIFT_DETECTED`.
+
+### 5.2 Multi-Dimensional Resource Limits & Budget Persistence
+- **Finite Budgets**: Every autonomous task operates under explicit limits for maximum steps, tool calls, duration, retries, and tokens (`ExecutionBudget`).
+- **Crash-Proof Budget Accounting**: Resource consumption is written to SQLite at every step. Restarts cannot reset consumed limits, preventing runaway loops or infinite retry storms.
+
+### 5.3 Non-Bypassable Approval Checkpoints
+- **High-Risk Action Interception**: Any tool call classified as `HIGH_IMPACT` immediately halts autonomous execution and transitions the task to `AWAITING_APPROVAL`.
+- **Cryptographic Binding**: Approvals require an HMAC-signed `ApprovalCard` bound to the specific `task_id`, `tool_name`, arguments, and session. Approvals cannot be reused or replayed across tasks.
+
+### 5.4 Tamper-Evident Checkpointing
+- **SHA-256 Checksums**: Checkpoint states (`TaskCheckpoint`) compute cryptographic digests of active plans, completed steps, and budget metrics. State tampering causes verification failure upon resume.
+- **Permanent Cancellation**: Tasks transitioned to `CANCELLED` cannot be restarted by scheduler triggers or duplicate incoming events.
+
 
 

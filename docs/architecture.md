@@ -232,4 +232,57 @@ Intent / Router Layer (LocalModelRouter)
 - **Preserved Fast-Path Intent**: Fast-path deterministic requests resolve in $<0.5\text{ms}$ with zero LLM token consumption.
 - **Policy-Gated Remote Fallback**: Fallback to remote LLMs when local resources are exhausted requires explicit policy permission (`allow_remote_fallback=True`) to prevent silent exfiltration of private context.
 
+---
+
+## 5. Proactive & Autonomous Workflows (Phase 9)
+
+PIXEL deploys a **Bounded Autonomy Execution Architecture** where proactive, scheduled, and long-running agents execute strictly within explicit goal boundaries, finite budgets, and continuous drift oversight:
+
+```
+Proactive Trigger (EventBus / Persistent Scheduler)
+    │
+    ▼
+Task Specification (AutonomousTaskContract & Immutable GoalContract)
+    │
+    ▼
+Concurrency Governor (TaskGovernor: Max 5 Slots, Starvation Protection)
+    │
+    ▼
+Bounded Slice Execution (AutonomousWorkflowEngine: Max 5 Steps / Slice)
+    │
+    ├─ Persistent Budget Manager (Step / Tool / Duration / Token Caps)
+    ├─ Goal Drift Detector (Semantic & Target Scope Defense)
+    ├─ L6 Policy Gate (Approval Cards for High-Impact Actions)
+    ├─ L8 Action Verifier (Execution Evidence Validation)
+    ▼
+Cryptographic Task Checkpoint (SHA-256 Hashed State)
+    │
+    ▼
+Notification Dispatcher (TaskNotificationManager: Deduplicated User Alerts)
+```
+
+### 5.1 Event-Driven Bus & Deduplication (`EventBus`)
+- **Predicate Filtering**: Subscriptions match event types using wildcard patterns (e.g. `device.*`, `system.metric_crossed`) and payload predicates.
+- **Idempotency Window**: Deduplicates events within a sliding time window ($3600\text{s}$) using SHA-256 idempotency keys, preventing duplicate task dispatch from re-delivered events.
+
+### 5.2 Persistent Task Scheduler (`AutonomousScheduler`)
+- **SQLite Persistence**: Stores one-shot, interval, and cron-like task specifications and execution schedules.
+- **Missed-Job Recovery Policies**: Automatically handles system downtime via deterministic policies (`EXECUTE_ONCE_NEXT_AVAILABLE`, `SKIP`, `RESCHEDULE`, `REQUIRE_APPROVAL`).
+- **Mockable Clock Support**: Integrates simulated time providers for 100% deterministic testing without real wall-clock delays.
+
+### 5.3 Explainable Goal Drift Detection (`GoalDriftDetector`)
+- **Scope & Target Isolation**: Continuously verifies proposed targets (files, URLs, network hosts, databases) against `goal.allowed_targets`.
+- **Prohibited Action Enforcement**: Blocks tool calls or plan steps matching prohibited actions/keywords (`delete`, `drop`, `force_push`).
+- **Objective Divergence Guard**: Detects indirect prompt injection attempting to redefine the original task objective. Breaches trigger an immediate transition to `DRIFT_DETECTED` and pause execution.
+
+### 5.4 Persistent Budget Accounting (`BudgetManager`)
+- **Multi-Dimensional Resource Caps**: Hard ceilings for steps, tool calls, wall-clock duration, retries, and token consumption.
+- **Crash-Resilient State**: Consumption metrics are persisted to SQLite at every step; restarts cannot reset or bypass budget limits.
+
+### 5.5 Checkpointing & Safe Resume
+- **Cryptographic Checkpoints**: State snapshots (`TaskCheckpoint`) compute SHA-256 checksums of active plans, completed steps, and budgets.
+- **Tampering Defense**: Checkpoints with invalid checksums are rejected upon restoration.
+- **Idempotent Cancellation**: Cancelled tasks permanently transition to `CANCELLED` and cannot be restarted.
+
+
 

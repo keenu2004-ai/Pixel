@@ -1,3 +1,9 @@
+from packages.core.interfaces.autonomous import (
+    BaseAutonomousEngine,
+    BaseDriftDetector,
+    BaseEventBus,
+    BaseScheduler,
+)
 from packages.core.interfaces.checkpointer import BaseCheckpointer
 from packages.core.interfaces.llm import BaseLocalLLMProvider
 from packages.core.interfaces.memory import BaseMemoryStore
@@ -18,4 +24,8 @@ __all__ = [
     "BaseCheckpointer",
     "BaseSpeakerEncoder",
     "BaseLocalLLMProvider",
+    "BaseEventBus",
+    "BaseScheduler",
+    "BaseDriftDetector",
+    "BaseAutonomousEngine",
 ]
