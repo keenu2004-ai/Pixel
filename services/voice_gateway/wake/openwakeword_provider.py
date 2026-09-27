@@ -161,14 +161,12 @@ class OpenWakeWordProvider(BaseWakeProvider):
     async def process_frame(self, frame: AudioFrame, session_id: str) -> WakeEvent | None:
         """Processes an AudioFrame. Returns WakeEvent if a wake phrase reaches detection threshold."""
         if not self._initialized:
+            if not self.is_available():
+                return None
             self.initialize()
 
         if not self._sessions:
-            raise PixelException(
-                message="No wake word sessions available",
-                category=ErrorCategory.PROVIDER_ERROR,
-                code="WAKE_SESSIONS_EMPTY"
-            )
+            return None
 
         sess_state = self._get_or_create_session_state(session_id)
         now = time.time()

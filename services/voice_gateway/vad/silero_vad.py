@@ -179,12 +179,6 @@ class SileroVADProvider(BaseVADProvider):
         audio_int16 = np.frombuffer(frame.pcm_data, dtype=np.int16)
         audio_float32 = audio_int16.astype(np.float32) / 32768.0
 
-        # Silero expects batch dimension (1, N)
-        if len(audio_float32.shape) == 1:
-            input_tensor = np.expand_dims(audio_float32, axis=0)
-        else:
-            input_tensor = audio_float32
-
         # 2. Compute audio energy level in dB for telemetry
         rms = np.sqrt(np.mean(audio_float32**2)) if len(audio_float32) > 0 else 0.0
         energy_db = float(20 * np.log10(rms)) if rms > 1e-6 else -60.0
@@ -193,16 +187,35 @@ class SileroVADProvider(BaseVADProvider):
         sess_state = self._get_or_create_session_state(session_id)
         sr_tensor = np.array(self.config.sample_rate, dtype=np.int64)
 
-        # 4. Execute ONNX Inference
-        ort_inputs = {
-            "input": input_tensor,
-            "state": sess_state.state,
-            "sr": sr_tensor
-        }
+        # 4. Execute ONNX Inference over 512-sample windows
+        window_size = self.config.window_size_samples
+        speech_prob = 0.0
 
-        ort_outputs = self._session.run(None, ort_inputs)
-        speech_prob = float(np.array(ort_outputs[0]).flatten()[0])
-        sess_state.state = ort_outputs[1]  # Update recurrent state tensor
+        if len(audio_float32) == 0:
+            vad_state = self._evaluate_transitions(sess_state, 0.0)
+            return VADEvent(
+                session_id=session_id,
+                state=vad_state,
+                speech_probability=0.0,
+                energy_level_db=-60.0
+            )
+
+        # Slice into window_size chunks
+        for i in range(0, len(audio_float32), window_size):
+            chunk = audio_float32[i : i + window_size]
+            if len(chunk) < window_size:
+                chunk = np.pad(chunk, (0, window_size - len(chunk)))
+
+            input_tensor = np.expand_dims(chunk, axis=0)
+            ort_inputs = {
+                "input": input_tensor,
+                "state": sess_state.state,
+                "sr": sr_tensor
+            }
+            ort_outputs = self._session.run(None, ort_inputs)
+            chunk_prob = float(np.array(ort_outputs[0]).flatten()[0])
+            sess_state.state = ort_outputs[1]  # Update recurrent state tensor
+            speech_prob = max(speech_prob, chunk_prob)
 
         # 5. Stateful smoothing & state transitions
         vad_state = self._evaluate_transitions(sess_state, speech_prob)

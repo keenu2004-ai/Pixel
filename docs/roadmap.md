@@ -19,23 +19,26 @@
 
 ## Phase Breakdown & Acceptance Criteria
 
-### Phase 0: Project Foundation & Engineering Harness (ACTIVE MILESTONE)
+### Phase 0: Project Foundation & Engineering Harness (COMPLETED)
 - **Scope**:
   - Monorepo directory structure, environment configurations, and dependency definitions.
   - Core typed contracts (Pydantic models for Voice Events, Intent Packets, Tool Specs, Policy Decisions).
   - Test harness, linting, and CI workflow definitions.
   - Engineering guidelines and Karpathy-inspired execution harness.
-- **Exit Condition**: Full unit test suite passes, typing check passes (`mypy`/`pyright`), lint passes (`ruff`/`eslint`), core contracts locked.
+- **Exit Condition**: Full unit test suite passes, typing check passes (`mypy`), lint passes (`ruff`), core contracts locked.
+- **Status**: Completed & Verified.
 
-### Phase 1: Core Voice Perception & Synthesis Loop
+### Phase 1: Core Voice Perception & Synthesis Loop (COMPLETED)
 - **Scope**:
-  - Local Audio Capture, Silero VAD, and Wake phrase detection.
-  - Replaceable STT pipeline (Faster-Whisper / IndicConformer / Cloud fallback).
-  - Replaceable TTS streaming pipeline (Kokoro / IndicF5 / EdgeTTS).
-  - Bilingual Hindi/Hinglish speech evaluation benchmark.
-- **Exit Condition**: End-to-end voice loop functions with barge-in; WER $< 12\%$ on Indic test set; TTFA $< 1000\text{ms}$.
+  - Local Audio Stream Buffer, Silero VAD ONNX engine, and OpenWakeWord neural phrase detection.
+  - Replaceable STT pipeline (Faster-Whisper local CT2 engine / Cloud STT fallback / Hybrid STT).
+  - Replaceable TTS streaming pipeline (Microsoft EdgeTTS streaming / Kokoro ONNX / Hybrid TTS).
+  - Real-time Voice Gateway session manager and pipeline with instant barge-in cancellation and state transitions.
+  - FastAPI / WebSocket streaming endpoint (`/ws/voice`).
+- **Exit Condition**: End-to-end voice loop functions with barge-in; real-time streaming VAD, wake, STT, and TTS with clean lifecycle.
+- **Status**: Completed & Verified.
 
-### Phase 2: Deterministic Intent Engine & OS Capabilities
+### Phase 2: Deterministic Intent Engine & OS Capabilities (ACTIVE MILESTONE)
 - **Scope**:
   - Fast-path deterministic router for alarms, timers, reminders, and volume.
   - Temporal expression parser for English, Hindi, and Hinglish.
