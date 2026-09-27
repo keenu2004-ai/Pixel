@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from packages.contracts.events import AudioFrame, TranscriptEvent
+from packages.contracts.memory import FactRecord
 from packages.contracts.tools import AuditLevel, RiskClass, ToolExecutionResult, ToolSpec
 from packages.core.interfaces import (
     BaseMemoryStore,
@@ -74,8 +75,26 @@ class MockMemory(BaseMemoryStore):
     async def get_fact(self, key: str, user_id: str) -> Any | None:
         return self._store.get(f"{user_id}:{key}")
 
-    async def set_fact(self, key: str, value: Any, user_id: str) -> None:
+    async def set_fact(
+        self,
+        key: str,
+        value: Any,
+        user_id: str,
+        category: str = "general",
+        provenance: str = "user_explicit",
+        confidence: float = 1.0,
+    ) -> FactRecord:
         self._store[f"{user_id}:{key}"] = value
+        return FactRecord(
+            fact_id="mock_fact",
+            user_id=user_id,
+            category=category,
+            key=key,
+            value=value,
+            confidence=confidence,
+            provenance=provenance,
+            is_active=True,
+        )
 
     async def delete_fact(self, key: str, user_id: str) -> bool:
         k = f"{user_id}:{key}"

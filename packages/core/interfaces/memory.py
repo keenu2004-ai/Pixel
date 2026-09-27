@@ -3,6 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from packages.contracts.memory import FactRecord
+
 
 class BaseMemoryStore(ABC):
     """Abstract base store for L9 Episodic and Semantic Memory."""
@@ -13,7 +15,15 @@ class BaseMemoryStore(ABC):
         pass
 
     @abstractmethod
-    async def set_fact(self, key: str, value: Any, user_id: str) -> None:
+    async def set_fact(
+        self,
+        key: str,
+        value: Any,
+        user_id: str,
+        category: str = "general",
+        provenance: str = "user_explicit",
+        confidence: float = 1.0,
+    ) -> FactRecord:
         """Stores or updates a semantic fact for a user."""
         pass
 
