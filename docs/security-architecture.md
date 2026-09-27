@@ -163,6 +163,28 @@
 - **Multi-Domain Trip Switches**: `KillSwitchSystem` stores persistent shutdown flags across 6 domains (`ALL_SWARMS`, `AUTONOMOUS_REMEDIATION`, `MODEL_PROMOTION`, `CODE_PROMOTION`, `MEMORY_REPLICATION`, `TRAINING_PIPELINE`).
 - **One-Way Tripping**: Once tripped, switches immediately halt all associated operations. Resetting a kill switch strictly requires authenticated `ADMIN` role access.
 
+---
+
+## 9. Real-World Execution, Sandbox & Injection Defense (Phase 13)
+
+### 9.1 Sandboxed Filesystem Security
+- **Directory Traversal Protection**: `SafeFilesystemTool` normalizes all paths against canonical `sandbox_root` and prevents path escapes (`../`, absolute foreign paths).
+- **Size Ceilings & Deletion Gates**: Restricts file read/write to 10MB bounds. File deletions are classified as `HIGH_IMPACT` requiring policy evaluation and explicit approval.
+
+### 9.2 Controlled Terminal Protection & Secret Scrubbing
+- **Destructive Command Filtering**: Blocks dangerous commands (`rm -rf /`, `mkfs`, `format C:`, fork bombs) prior to subprocess invocation.
+- **Automated Secret Redaction**: Intercepts `stdout` and `stderr` streams, applying regex filters to scrub API keys, JWT tokens, and bearer passwords with `[REDACTED_SECRET]`.
+- **Enforced Execution Timeouts**: Subprocesses are bounded by strict 30-second timeouts with process tree termination on timeout.
+
+### 9.3 Controlled Browser Security & Prompt Injection Defense
+- **Domain Allowlist & Blocklist**: Blocks navigation to known malicious/phishing domains.
+- **Web Content Sanitization**: Sanitizes incoming DOM text, neutralizing injection markers (`ignore previous instructions`, `DAN mode`, `system: override`).
+
+### 9.4 Android Native Action Protection & Contact Ambiguity Gate
+- **Ambiguity Gate**: Refuses to dial or message ambiguous contact matches blindly; requires explicit disambiguation.
+- **Biometric & Policy Gating**: Calling and SMS dispatch are gated as `HIGH_IMPACT` actions under L6 policy.
+
+
 
 
 

@@ -384,6 +384,48 @@ PIXEL implements a bounded, observable, and policy-governed autonomous evolution
 - **Persistent Kill Switches (`KillSwitchSystem`)**: Tamper-resistant emergency trip switches across 6 operational domains (`ALL_SWARMS`, `AUTONOMOUS_REMEDIATION`, `MODEL_PROMOTION`, `CODE_PROMOTION`, `MEMORY_REPLICATION`, `TRAINING_PIPELINE`).
 - **Policy Invariance**: Kill switches cannot be untripped by autonomous agents; resets strictly require authenticated administrator authority.
 
+---
+
+## 8. Real-World Assistant Integration & Multi-Device Execution Layer
+
+```
+[ Microphone Runtime ] ──► [ OpenWakeWord ] ──► [ Silero VAD ] ──► [ Faster-Whisper STT ]
+                                                                           │
+                                                                           ▼
+[ Personalized TTS ] ◄── [ Layered Memory ] ◄── [ L8 Verification ] ◄── [ L6 Policy Gate ]
+          ▲                                                                │
+          │                                                                ▼
+   [ Audio Speaker ]                                            [ Real Tool Registry ]
+                                                                           │
+                                               ┌───────────────────────────┼───────────────────────────┐
+                                               ▼                           ▼                           ▼
+                                    [ Android Actions ]          [ OS / Filesystem / Terminal ] [ Controlled Browser ]
+                                    (Calls, SMS, Alarms,          (Sandboxed FS, Secret          (Domain Whitelist,
+                                     Media, Calendar)             Scrubbing, Command Timeout)     Injection Defense)
+```
+
+### 8.1 Physical & Streaming Audio Runtime
+- **Microphone Runtime (`MicrophoneRuntime`)**: Bounded async FIFO buffering (`AudioStreamBuffer`) with zero raw audio persistence on disk and non-blocking 16kHz 16-bit mono PCM capture.
+- **Streaming Voice Loop (`StreamingVoiceLoop`)**: Full-duplex voice execution connecting microphone frames, wake word, VAD segments, STT transcription, deterministic intent / agent planning, tool execution, L6/L8 verification, and streaming TTS output.
+- **Zero-Latency Barge-In**: Instant audio interruption (`trigger_barge_in`) terminating in-flight speaker synthesis and cancelling pending downstream tasks when the user speaks.
+
+### 8.2 Real Android Native Action Adapters
+- **Android Action Adapter (`AndroidActionAdapter` & `AndroidActionHandler`)**: Native platform intents and system services for Phone Calling, SMS Messaging, Alarms, Timers, Media Session Control, Calendar Events, and Application Launching.
+- **Contact Resolution & Ambiguity Protection**: Refuses to dial or message ambiguous contact matches blindly; requires explicit user clarification.
+- **L6 Policy Gate Integration**: Evaluates risk tiers (`READ`, `REVERSIBLE_WRITE`, `HIGH_IMPACT`) before any native device action executes.
+
+### 8.3 Safe Sandboxed OS, Terminal & Browser Tools
+- **Sandboxed Filesystem (`SafeFilesystemTool`)**: Strict workspace containment preventing directory traversal (`../`), bounded file sizes (10MB ceiling), and `HIGH_IMPACT` deletion protection.
+- **Controlled Terminal (`TerminalTool`)**: Command allowlisting, dangerous pattern filtering (`rm -rf /`, `mkfs`), strict 30s timeouts, and automatic regex-based credential/secret scrubbing from output streams.
+- **Controlled Browser (`ControlledBrowserTool`)**: Sandboxed navigation, malicious domain blocking, and automatic prompt injection sanitization on untrusted web content.
+
+### 8.4 Multi-Device Mesh & Seamless Handoff
+- **Distributed Mesh (`MultiDeviceRuntime`)**: Connects Phone, Desktop, Server, and Satellite nodes with discovery, presence, and heartbeat monitoring.
+- **Distributed Wake Arbitration**: Elects single primary responder among collocated devices based on confidence and latency heuristics.
+- **Cross-Device Context Handoff**: Transfers execution state seamlessly across nodes (e.g. Phone hears $\rightarrow$ Server reasons $\rightarrow$ Desktop executes $\rightarrow$ Phone responds).
+- **Offline Degradation & Recovery**: Enqueues non-blocking requests during network outages and reconciles state without duplicate executions upon reconnection.
+
+
 
 
 

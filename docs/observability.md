@@ -73,4 +73,20 @@ The Control Plane exposes real-time administrative telemetry via `/ws/control-pl
 - **Proposal Ledger (`pixel_proposals.db`)**: Records change proposal state machine transitions (`PROPOSED`, `ANALYZED`, `TESTING`, `VERIFIED`, `CANARY`, `APPROVED`, `PROMOTED`, `ROLLED_BACK`), diffs, canary percentages, and regression test codes.
 - **Kill Switch Ledger (`pixel_killswitches.db`)**: Append-only log of emergency kill switch activation, actor IDs, timestamps, and justifications.
 
+---
+
+## 6. Real-World Execution & End-to-End Tracing Metrics (Phase 13)
+
+| Metric Name | Type | Target Threshold | Description |
+| :--- | :--- | :--- | :--- |
+| `pixel.voice.total_voice_to_response_ms` | Histogram | $< 250\text{ms}$ (P95) | End-to-end voice perception to speech audio playback latency |
+| `pixel.voice.wake_detection_latency_ms` | Histogram | $< 20\text{ms}$ (P95) | OpenWakeWord neural phrase detection latency |
+| `pixel.voice.vad_latency_ms` | Histogram | $< 10\text{ms}$ (P95) | Silero / streaming VAD speech boundary detection latency |
+| `pixel.voice.stt_latency_ms` | Histogram | $< 80\text{ms}$ (P95) | Faster-Whisper local CT2 speech transcription latency |
+| `pixel.voice.tts_first_chunk_latency_ms` | Histogram | $< 50\text{ms}$ (P95) | Time to first synthesized audio chunk playback |
+| `pixel.actions.android_dispatch_ms` | Histogram | $< 15\text{ms}$ (P95) | Android native intent & platform service dispatch latency |
+| `pixel.mesh.handoff_latency_ms` | Histogram | $< 20\text{ms}$ (P95) | Cross-device context routing and response roundtrip latency |
+| `pixel.tools.secret_redaction_count` | Counter | Monitored | Cumulative count of stripped credentials/secrets from tool outputs |
+
+
 

@@ -1,5 +1,3 @@
-"""Tools subpackage for PIXEL Agent Runtime."""
-
 from services.agent_runtime.tools.builtin import (
     GetSystemInfoTool,
     LaunchAppTool,
@@ -9,6 +7,13 @@ from services.agent_runtime.tools.builtin import (
     SearchKnowledgeTool,
     SetVolumeTool,
     WriteFileTool,
+)
+from services.agent_runtime.tools.real_world_tools import (
+    AndroidActionTool,
+    BrowserNavigateTool,
+    FilesystemReadTool,
+    FilesystemWriteTool,
+    TerminalRunTool,
 )
 from services.agent_runtime.tools.registry import ToolRegistry
 
@@ -22,4 +27,9 @@ __all__ = [
     "GetSystemInfoTool",
     "QueryMemoryTool",
     "SearchKnowledgeTool",
+    "FilesystemReadTool",
+    "FilesystemWriteTool",
+    "TerminalRunTool",
+    "BrowserNavigateTool",
+    "AndroidActionTool",
 ]

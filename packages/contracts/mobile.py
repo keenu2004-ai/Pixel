@@ -125,3 +125,101 @@ class MobileApprovalResponse(BaseModel):
         default=False, description="Whether verified via BiometricPrompt"
     )
     timestamp: datetime = Field(default_factory=_utc_now)
+
+
+# ============================================================================
+# Android Native Action Contracts
+# ============================================================================
+
+
+class AndroidActionType(StrEnum):
+    """Supported Android native intent/service action categories."""
+
+    CALL = "CALL"
+    SMS = "SMS"
+    ALARM = "ALARM"
+    TIMER = "TIMER"
+    MEDIA_CONTROL = "MEDIA_CONTROL"
+    NOTIFICATION = "NOTIFICATION"
+    CALENDAR = "CALENDAR"
+    LAUNCH_APP = "LAUNCH_APP"
+    DEVICE_SETTING = "DEVICE_SETTING"
+
+
+class AndroidContact(BaseModel):
+    """Resolved contact entity from Android Contact Provider."""
+
+    contact_id: str = Field(default_factory=_gen_id)
+    display_name: str
+    phone_number: str
+    is_primary: bool = True
+
+
+class AndroidAlarmSpec(BaseModel):
+    """Specification for setting an Android alarm."""
+
+    hour: int = Field(..., ge=0, le=23)
+    minutes: int = Field(..., ge=0, le=59)
+    message: str = Field(default="PIXEL Alarm")
+    days_of_week: list[int] = Field(
+        default_factory=list, description="1=Sunday, 2=Monday, ..., 7=Saturday"
+    )
+    skip_ui: bool = True
+    vibrate: bool = True
+
+
+class AndroidTimerSpec(BaseModel):
+    """Specification for setting an Android countdown timer."""
+
+    duration_seconds: int = Field(..., gt=0)
+    label: str = Field(default="PIXEL Timer")
+    skip_ui: bool = True
+
+
+class AndroidMediaCommand(StrEnum):
+    """Supported Android media session commands."""
+
+    PLAY = "PLAY"
+    PAUSE = "PAUSE"
+    STOP = "STOP"
+    NEXT = "NEXT"
+    PREVIOUS = "PREVIOUS"
+    VOLUME_UP = "VOLUME_UP"
+    VOLUME_DOWN = "VOLUME_DOWN"
+    SET_VOLUME = "SET_VOLUME"
+    MUTE = "MUTE"
+
+
+class AndroidCalendarEvent(BaseModel):
+    """Calendar event payload for Android CalendarProvider."""
+
+    event_id: str = Field(default_factory=_gen_id)
+    title: str
+    start_time_iso: str
+    end_time_iso: str
+    location: str = ""
+    description: str = ""
+    all_day: bool = False
+
+
+class AndroidActionPayload(BaseModel):
+    """Standardized action payload dispatched to Android client or simulated runtime."""
+
+    action_id: str = Field(default_factory=_gen_id)
+    action_type: AndroidActionType
+    target_package: str | None = None
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    requires_confirmation: bool = False
+    created_at: datetime = Field(default_factory=_utc_now)
+
+
+class AndroidActionResult(BaseModel):
+    """Verification and execution status returned from Android Action Handler."""
+
+    action_id: str
+    action_type: AndroidActionType
+    success: bool
+    state_verified: bool = False
+    error_message: str | None = None
+    result_data: dict[str, Any] = Field(default_factory=dict)
+    executed_at: datetime = Field(default_factory=_utc_now)
