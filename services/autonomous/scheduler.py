@@ -5,6 +5,7 @@ import logging
 import sqlite3
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from packages.contracts.autonomous import (
     AutonomousTaskContract,
@@ -29,14 +30,14 @@ class AutonomousScheduler(BaseScheduler):
         self._time_fn = time_fn or (lambda: datetime.now(UTC))
         self._memory_conn: sqlite3.Connection | None = None
         if self.db_path == ":memory:":
-            self._memory_conn = sqlite3.connect(":memory:")
+            self._memory_conn = sqlite3.connect(":memory:", check_same_thread=False)
             self._memory_conn.row_factory = sqlite3.Row
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
         if self._memory_conn is not None:
             return self._memory_conn
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -166,6 +167,24 @@ class AutonomousScheduler(BaseScheduler):
             if not row:
                 return None
             return self._row_to_task(row)
+
+    def list_all_tasks(
+        self, user_id: str | None = None, state: TaskLifecycleState | None = None
+    ) -> list[AutonomousTaskContract]:
+        """List all persisted tasks with optional user and state filters."""
+        query = "SELECT * FROM autonomous_tasks WHERE 1=1"
+        params: list[Any] = []
+        if user_id:
+            query += " AND user_id = ?"
+            params.append(user_id)
+        if state:
+            query += " AND state = ?"
+            params.append(state.value)
+        query += " ORDER BY created_at DESC"
+
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, tuple(params))
+            return [self._row_to_task(row) for row in cursor.fetchall()]
 
     def list_due_tasks(self, now: datetime | None = None) -> list[AutonomousTaskContract]:
         """List tasks ready to execute at the given reference time."""

@@ -16,14 +16,14 @@ class BudgetManager:
         self.db_path = db_path
         self._memory_conn: sqlite3.Connection | None = None
         if self.db_path == ":memory:":
-            self._memory_conn = sqlite3.connect(":memory:")
+            self._memory_conn = sqlite3.connect(":memory:", check_same_thread=False)
             self._memory_conn.row_factory = sqlite3.Row
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
         if self._memory_conn is not None:
             return self._memory_conn
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
 

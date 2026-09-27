@@ -87,26 +87,28 @@ All engineering contracts and design specifications are rigorously documented un
 ## 🚀 Phased Implementation Roadmap
 
 - [x] **Phase 0: Foundation & Engineering Harness** (Contracts, packaging, test harness, CI)
-- [ ] **Phase 1: Core Voice Perception & Synthesis Loop** (Silero VAD, IndicConformer, Kokoro TTS)
-- [ ] **Phase 2: Deterministic Intent Engine & OS Capabilities** (Alarms, Timers, Reminders, App Launch)
-- [ ] **Phase 3: Layered Memory & RAG Knowledge Engine** (Episodic/Semantic memory, pgvector)
-- [ ] **Phase 4: LangGraph Agent Runtime & Tool Policy Engine** (State graphs, retry loops)
-- [ ] **Phase 5: Computer Control & Serena Semantic Coding** (AST code exploration, patch verification)
-- [ ] **Phase 6: Android System Assistant** (VoiceInteractionService & background daemon)
-- [ ] **Phase 7: Multi-Device Satellites & Distributed Context** (mTLS pairing, context handoff)
-- [ ] **Phase 8: Voice Cloning & Local Quantized Models** (Speaker embeddings, 4-bit local LLMs)
-- [ ] **Phase 9: Proactive & Autonomous Workflows** (Event-driven monitors, scheduled agents)
+- [x] **Phase 1: Core Voice Perception & Synthesis Loop** (Silero VAD, Wake detection, Streaming STT/TTS)
+- [x] **Phase 2: Deterministic Intent Engine & OS Capabilities** (Alarms, Timers, Reminders, Hinglish Parser)
+- [x] **Phase 3: Layered Memory & RAG Knowledge Engine** (Episodic/Semantic memory, AST chunking, Vector retrieval)
+- [x] **Phase 4: LangGraph Agent Runtime & Tool Policy Engine** (State graphs, non-bypassable L6 policy, L8 verification)
+- [x] **Phase 5: Computer Control & Serena Semantic Coding** (AST code exploration, patch verification, isolated test runner)
+- [x] **Phase 6: Android System Assistant** (VoiceInteractionService, background daemon, role manager)
+- [x] **Phase 7: Multi-Device Satellites & Distributed Context** (mTLS pairing, multi-satellite wake arbitration, context migration)
+- [x] **Phase 8: Voice Cloning & Local Quantized Models** (Speaker embeddings, 4-bit quantized local LLMs, VRAM governor)
+- [x] **Phase 9: Proactive & Autonomous Workflows** (Event-driven monitors, persistent scheduler, goal drift defense)
+- [x] **Phase 10: Production Hardening & Full-Stack Control Plane** (Unified web dashboard, RBAC, WebSocket streaming, Docker containerization)
+- [ ] **Phase 11: Community Ecosystem & Extensibility Hub** (Sandboxed plugin engine, skill marketplace, encrypted cloud sync)
 
 ---
 
-## 🛠️ Quickstart (Development Setup)
+## 🛠️ Quickstart (Development & Production Setup)
 
 ### Prerequisites
 - Python 3.11 or higher
-- Node.js 20+ (for web UI)
 - Git
+- Docker & Docker Compose (optional, for production containerization)
 
-### Installation
+### Local Development Installation
 ```bash
 # Clone repository
 git clone https://github.com/keenu2004-ai/Pixel.git
@@ -122,9 +124,26 @@ pip install -e ".[dev]"
 # Copy environment template
 cp .env.example .env
 
-# Run verification test suite
+# Run full verification suite (312 tests)
 pytest
+mypy packages services
+ruff check .
 ```
+
+### Launching the Production Control Plane & Runtime
+```bash
+# Option 1: Native Python runtime
+python -m uvicorn services.control_plane.server:app --host 0.0.0.0 --port 8000
+
+# Option 2: Production Containerization via Docker Compose
+docker compose -f infra/docker/docker-compose.yml up --build -d
+```
+Access the Control Plane Web Dashboard at `http://localhost:8000`.
+
+Default administrative credentials:
+- **Admin**: `admin` / `admin_pixel_2026`
+- **Operator**: `operator` / `operator_pixel_2026`
+- **Viewer**: `viewer` / `viewer_pixel_2026`
 
 ---
 
@@ -134,3 +153,4 @@ PIXEL operates on a **Zero Blind Trust** policy:
 1. **No secrets in git**: All credentials must reside in local `.env` (gitignored).
 2. **Four-Pillar Execution**: Every feature must execute through `CLEAR CONTEXT → EXECUTION PROTOCOL → INTERNAL CRITIC → EXIT CONDITION`.
 3. **Simplicity First**: Reject speculative abstractions and unnecessary dependencies.
+

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIXEL — Production Control Plane</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-box login-box">
+      <div class="brand-badge">
+        <span class="brand-dot"></span> PIXEL CONTROL PLANE
+      </div>
+      <h2>Operator Sign In</h2>
+      <p class="subtitle">Enter administrative or operator credentials to access the runtime.</p>
+      
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" value="admin" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" value="pixel-admin-secure-2026" required>
+        </div>
+        <div id="login-error" class="error-msg" style="display: none;"></div>
+        <button type="submit" class="btn btn-primary btn-block">Authenticate</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Application Wrapper -->
+  <div id="app-container" class="app-layout" style="display: none;">
+    <!-- Top Bar -->
+    <header class="top-header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-orb"></span>
+          <span class="logo-text">PIXEL</span>
+          <span class="version-tag">v1.0.0 (Prod)</span>
+        </div>
+        <div id="ws-status" class="status-pill connected">
+          <span class="status-indicator"></span>
+          <span id="ws-status-text">Live Stream Active</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="voice-state-indicator">
+          <span class="state-label">VOICE STATE:</span>
+          <span id="global-voice-state" class="state-badge state-idle">IDLE</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="user-profile">
+          <span id="current-user-role" class="role-badge role-admin">ADMIN</span>
+          <span id="current-username" class="username">admin</span>
+          <button id="btn-logout" class="btn btn-sm btn-outline">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+      <button class="nav-tab active" data-tab="overview">
+        <span class="tab-icon">📊</span> Overview
+      </button>
+      <button class="nav-tab" data-tab="voice">
+        <span class="tab-icon">🎙️</span> Voice & Conversations
+      </button>
+      <button class="nav-tab" data-tab="tasks">
+        <span class="tab-icon">⚡</span> Autonomous Tasks
+      </button>
+      <button class="nav-tab" data-tab="scheduler">
+        <span class="tab-icon">⏱️</span> Scheduler
+      </button>
+      <button class="nav-tab" data-tab="memory">
+        <span class="tab-icon">🧠</span> Memory & RAG
+      </button>
+      <button class="nav-tab" data-tab="devices">
+        <span class="tab-icon">🛰️</span> Device Topology
+      </button>
+      <button class="nav-tab" data-tab="audit">
+        <span class="tab-icon">🛡️</span> Audit & Security
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content-viewport">
+      <!-- 1. Overview Tab -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-title">System Status</span>
+            <span class="metric-value status-good" id="metric-sys-status">HEALTHY</span>
+            <span class="metric-sub">L0–L10 Authoritative</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Online Nodes</span>
+            <span class="metric-value" id="metric-devices-count">1</span>
+            <span class="metric-sub">mTLS Verified Satellites</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Active Tasks</span>
+            <span class="metric-value" id="metric-tasks-count">0</span>
+            <span class="metric-sub">Autonomous Governor</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Audit Ledger</span>
+            <span class="metric-value" id="metric-audit-count">0</span>
+            <span class="metric-sub">Policy Verifications</span>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Subsystem Health & Latencies</h3>
+              <button class="btn btn-sm btn-ghost" id="btn-refresh-health">Refresh</button>
+            </div>
+            <div class="panel-body">
+              <table class="data-table" id="services-health-table">
+                <thead>
+                  <tr>
+                    <th>Subsystem</th>
+                    <th>Status</th>
+                    <th>RTT / Latency</th>
+                    <th>Telemetry Details</th>
+                  </tr>
+                </thead>
+                <tbody id="services-health-body">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Live Event Feed</h3>
+              <span class="badge">Realtime</span>
+            </div>
+            <div class="panel-body">
+              <div id="live-event-log" class="event-stream-container">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Voice & Conversations Tab -->
+      <section id="tab-voice" class="tab-pane">
+        <div class="voice-hero">
+          <div class="voice-orb-wrapper">
+            <canvas id="voice-orb-canvas" width="220" height="220"></canvas>
+            <div id="voice-orb-state" class="orb-state-text">IDLE</div>
+          </div>
+          <div class="voice-status-summary">
+            <h2>Real-time Voice Pipeline</h2>
+            <p class="subtitle">Bilingual Indic & English VAD, Wake Word Arbitration, Streaming Faster-Whisper STT & Kokoro TTS.</p>
+            <div class="pipeline-pills">
+              <span class="pill">VAD: Silero ONNX</span>
+              <span class="pill">Wake: OpenWakeWord</span>
+              <span class="pill">STT: Faster-Whisper</span>
+              <span class="pill">TTS: Kokoro / IndicF5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Active Conversation Sessions</h3>
+            </div>
+            <div class="panel-body">
+              <div id="conversations-list" class="conversation-sessions-list">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Live Transcript & Dialogue Stream</h3>
+            </div>
+            <div class="panel-body">
+              <div id="live-transcript-feed" class="transcript-stream-box">
+                <div class="empty-state">No live speech session active. Say "Hey Pixel" or trigger a prompt.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Autonomous Tasks Tab -->
+      <section id="tab-tasks" class="tab-pane">
+        <div class="action-bar">
+          <h2>Autonomous Task Control Center</h2>
+          <button class="btn btn-primary" id="btn-open-task-modal">+ New Autonomous Task</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Task ID</th>
+                  <th>Objective</th>
+                  <th>State</th>
+                  <th>Schedule</th>
+                  <th>Budget Steps</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tasks-table-body">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Persistent Scheduler Tab -->
+      <section id="tab-scheduler" class="tab-pane">
+        <div class="action-bar">
+          <h2>Persistent Task Scheduler</h2>
+          <button class="btn btn-primary" id="btn-open-schedule-modal">+ Schedule New Job</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Job ID</th>
+                  <th>Objective</th>
+                  <th>Schedule Type</th>
+                  <th>Expression</th>
+                  <th>Next Execution</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="scheduler-table-body">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Memory & RAG Tab -->
+      <section id="tab-memory" class="tab-pane">
+        <div class="action-bar">
+          <h2>Hierarchical Memory & Knowledge Base</h2>
+          <button class="btn btn-danger" id="btn-open-forget-modal">🗑️ Right to Forget Purge</button>
+        </div>
+
+        <div class="search-bar-row">
+          <input type="text" id="memory-search-input" placeholder="Search episodic history or semantic facts..." class="search-input">
+          <button class="btn btn-primary" id="btn-search-memory">Search</button>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Semantic Facts Ledger</h3>
+            </div>
+            <div class="panel-body">
+              <div id="memory-facts-list" class="facts-container">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Search & Retrieval Results</h3>
+            </div>
+            <div class="panel-body">
+              <div id="memory-search-results" class="results-container">
+                <div class="empty-state">Enter a query to inspect semantic retrieval and episodic matches.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Device Topology Tab -->
+      <section id="tab-devices" class="tab-pane">
+        <div class="action-bar">
+          <h2>Central Authority & Satellite Topology</h2>
+          <button class="btn btn-primary" id="btn-open-pairing-modal">➕ Pair Satellite Device</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body">
+            <div class="topology-grid" id="devices-grid">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Audit & Security Tab -->
+      <section id="tab-audit" class="tab-pane">
+        <div class="action-bar">
+          <h2>Security & Policy Audit Ledger</h2>
+          <button class="btn btn-sm btn-ghost" id="btn-refresh-audit">Refresh Audit Trail</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp (UTC)</th>
+                  <th>Actor</th>
+                  <th>Tool Name</th>
+                  <th>Risk Tier</th>
+                  <th>Policy Verdict</th>
+                  <th>Execution</th>
+                  <th>Trace ID</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Create Task Modal -->
+  <div id="task-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <h3>Create Autonomous Task</h3>
+      <form id="create-task-form">
+        <div class="form-group">
+          <label for="task-objective">Objective</label>
+          <input type="text" id="task-objective" placeholder="e.g. Audit repository dependencies and report vulnerabilities" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="task-schedule-type">Schedule Type</label>
+            <select id="task-schedule-type">
+              <option value="ONE_SHOT">ONE_SHOT</option>
+              <option value="INTERVAL">INTERVAL</option>
+              <option value="CRON">CRON</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="task-schedule-expr">Expression / Interval</label>
+            <input type="text" id="task-schedule-expr" placeholder="interval:60s or ISO datetime">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="task-max-steps">Max Step Budget</label>
+            <input type="number" id="task-max-steps" value="20" min="1" max="100">
+          </div>
+          <div class="form-group">
+            <label for="task-max-tools">Max Tool Calls</label>
+            <input type="number" id="task-max-tools" value="15" min="1" max="50">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="btn-close-task-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Schedule Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right to Forget Modal -->
+  <div id="forget-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <h3>Right to Forget Data Purge</h3>
+      <p class="subtitle">Permanently erase all semantic facts and episodic memories matching a keyword.</p>
+      <form id="forget-form">
+        <div class="form-group">
+          <label for="forget-keyword">Keyword / Topic</label>
+          <input type="text" id="forget-keyword" placeholder="e.g. password, health, project_alpha" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="btn-close-forget-modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Execute Purge</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Action Approval Card Modal (L6 Interception) -->
+  <div id="approval-card-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box approval-card">
+      <div class="approval-header">
+        <span class="warning-icon">⚠️</span>
+        <h3>L6 Action Confirmation Required</h3>
+      </div>
+      <p id="approval-tool-reason" class="approval-reason"></p>
+      <div class="approval-details">
+        <div><strong>Tool:</strong> <span id="approval-tool-name"></span></div>
+        <div><strong>Risk Tier:</strong> <span id="approval-risk-class" class="badge"></span></div>
+        <div><strong>Task ID:</strong> <span id="approval-task-id"></span></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger" id="btn-reject-approval">Reject Action</button>
+        <button type="button" class="btn btn-success" id="btn-confirm-approval">Approve & Execute</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

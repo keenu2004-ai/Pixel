@@ -1,0 +1,46 @@
+services:
+  pixel-control-plane:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    container_name: pixel-control-plane-prod
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PIXEL_ENV=production
+      - PIXEL_HOST=0.0.0.0
+      - PIXEL_PORT=8000
+      - PIXEL_LOG_LEVEL=INFO
+      - PIXEL_SECRET_KEY=pixel-production-control-plane-secret-key-2026
+      - PIXEL_STRICT_SANDBOX=true
+      - PIXEL_ALLOW_NETWORK_TOOLS=false
+    volumes:
+      - pixel-persistence:/app/data/persistence
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4096M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - pixel-internal-net
+
+volumes:
+  pixel-persistence:
+    name: pixel-persistence-prod
+
+networks:
+  pixel-internal-net:
+    name: pixel-internal-net
+    driver: bridge

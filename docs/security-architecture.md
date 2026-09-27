@@ -90,5 +90,28 @@
 - **SHA-256 Checksums**: Checkpoint states (`TaskCheckpoint`) compute cryptographic digests of active plans, completed steps, and budget metrics. State tampering causes verification failure upon resume.
 - **Permanent Cancellation**: Tasks transitioned to `CANCELLED` cannot be restarted by scheduler triggers or duplicate incoming events.
 
+---
+
+## 6. Control Plane Security, RBAC & Container Hardening
+
+### 6.1 Hierarchical Role-Based Access Control (RBAC)
+- **Role Hierarchy**: `VIEWER` $\subset$ `OPERATOR` $\subset$ `ADMIN` $\subset$ `SYSTEM`.
+- **Server-Side Enforcement**: All REST endpoints and WebSocket channels enforce role requirements server-side using FastAPI dependency injection (`require_role`). Client-side UI element hiding is strictly cosmetic.
+- **Privileged Actions**: Administrative capabilities (L6 action approvals, memory purge, device certificate revocation, user management) strictly require `ADMIN` or `SYSTEM` authority.
+
+### 6.2 Authentication & Token Security
+- **PBKDF2-HMAC-SHA256 Hashing**: Password hashes are stored with 100,000 iterations and per-user cryptographically random 16-byte hex salts.
+- **HMAC-SHA256 Signed Access Tokens**: Cryptographically signed tokens include issuance timestamp, expiration timestamp (default 12 hours), user ID, and role.
+- **Token Revocation Ledger**: Active tokens can be revoked immediately across all sessions upon logout or credential reset.
+
+### 6.3 Web Defense & Secure Headers
+- **Content Security Policy (CSP)**: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:; frame-ancestors 'none';`.
+- **Anti-Clickjacking & Anti-MIME Sniffing**: Strict enforcement of `X-Frame-Options: DENY` and `X-Content-Type-Options: nosniff`.
+- **Sanitized Error Output**: Unhandled exceptions and validation errors never leak internal stack traces, connection strings, or system secrets to the browser.
+
+### 6.4 Non-Root Container Execution
+- **Least Privilege Execution**: Docker images execute under unprivileged user `pixeluser` (UID 10001) with root filesystem isolation and minimal read-only mounts where appropriate.
+
+
 
 

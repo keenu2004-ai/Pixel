@@ -1,0 +1,27 @@
+"""Control Plane API Routers."""
+
+from services.control_plane.routers.audit_router import router as audit_router
+from services.control_plane.routers.auth_router import router as auth_router
+from services.control_plane.routers.conversations_router import (
+    router as conversations_router,
+)
+from services.control_plane.routers.devices_router import router as devices_router
+from services.control_plane.routers.memory_router import router as memory_router
+from services.control_plane.routers.overview_router import router as overview_router
+from services.control_plane.routers.scheduler_router import (
+    router as scheduler_router,
+)
+from services.control_plane.routers.tasks_router import router as tasks_router
+from services.control_plane.routers.ws_router import router as ws_router
+
+__all__ = [
+    "auth_router",
+    "overview_router",
+    "conversations_router",
+    "tasks_router",
+    "scheduler_router",
+    "memory_router",
+    "devices_router",
+    "audit_router",
+    "ws_router",
+]

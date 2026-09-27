@@ -31,3 +31,16 @@ PIXEL implements end-to-end tracing across all cognitive pipeline stages. Every 
 | `pixel.tool.execution_duration_ms` | Histogram | $< 500\text{ms}$ (P95) | Time spent inside tool execution runtime |
 | `pixel.token.total_consumed` | Counter | Monitored | Cumulative input/output token usage per session/day |
 | `pixel.cost.usd_estimate` | Counter | Monitored | Real-time dollar burn rate tracking |
+| `pixel.control_plane.api_latency_ms` | Histogram | $< 50\text{ms}$ (P95) | Control plane REST API response duration |
+| `pixel.control_plane.ws_broadcast_ms` | Histogram | $< 5\text{ms}$ (P95) | Control plane WebSocket event broadcast dispatch |
+| `pixel.control_plane.active_connections` | Gauge | Monitored | Number of authenticated operators connected via WebSocket |
+
+---
+
+## 3. Control Plane Observability & Audit Streams
+
+The Control Plane exposes real-time administrative telemetry via `/ws/control-plane` and `/api/v1/audit/logs`:
+- **Audit Logging**: Every security, task, scheduler, memory, and device administrative action emits a structured, timestamped audit record tagged with `actor_id`, `actor_role`, `action`, `resource_type`, `resource_id`, and `ip_address`.
+- **Zero Raw Secret Telemetry**: Logs and telemetry streams are strictly scrubbed of tokens, passwords, private keys, and session cookies.
+- **Client Backpressure Protection**: WebSocket broadcast buffers are bounded with drop-oldest drop queues to protect backend throughput against lagging clients.
+
