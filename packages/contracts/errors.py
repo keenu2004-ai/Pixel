@@ -84,3 +84,39 @@ class ProviderTimeoutException(PixelException):
             details={"provider": provider_name, "timeout_ms": timeout_ms},
             retryable=True
         )
+
+
+class ProviderUnavailableException(PixelException):
+    """Raised when a model or cloud provider service is unavailable or uninstalled."""
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            message=message,
+            category=ErrorCategory.PROVIDER_ERROR,
+            code="PIXEL_PROVIDER_UNAVAILABLE",
+            details=details,
+            retryable=True
+        )
+
+
+class ModelException(PixelException):
+    """Raised when local model inference or loading fails."""
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            message=message,
+            category=ErrorCategory.PROVIDER_ERROR,
+            code="PIXEL_MODEL_ERROR",
+            details=details,
+            retryable=False
+        )
+
+
+class NetworkException(PixelException):
+    """Raised when an external API or network request fails."""
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            message=message,
+            category=ErrorCategory.PROVIDER_ERROR,
+            code="PIXEL_NETWORK_ERROR",
+            details=details,
+            retryable=True
+        )
