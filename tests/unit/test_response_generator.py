@@ -70,7 +70,10 @@ def test_volume_response() -> None:
         extracted_entities={"action": VolumeAction.SET, "level": 60},
     )
     r_vol = ToolExecutionResult(success=True, output=60)
-    assert ResponseGenerator.generate_response(p_vol, r_vol) == "Volume 60 percent par set kar diya hai."
+    assert (
+        ResponseGenerator.generate_response(p_vol, r_vol)
+        == "Volume 60 percent par set kar diya hai."
+    )
 
 
 def test_app_launch_response() -> None:

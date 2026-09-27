@@ -39,7 +39,9 @@ Semantic facts store durable preferences like favorite music genres and preferre
     # Query 1: Fast-path router
     results = await rag_retriever.retrieve(query="fast-path deterministic router latency", top_k=2)
     assert len(results) >= 1
-    assert "sub-600ms" in results[0].chunk.content or "fast-path" in results[0].chunk.content.lower()
+    assert (
+        "sub-600ms" in results[0].chunk.content or "fast-path" in results[0].chunk.content.lower()
+    )
 
     # Query 2: Memory preferences
     results2 = await rag_retriever.retrieve(query="semantic facts durable preferences", top_k=2)
@@ -69,7 +71,9 @@ class VolumeManager:
 
 
 @pytest.mark.asyncio
-async def test_context_assembler_citations_and_prompt_injection_defense(rag_retriever: RAGRetriever) -> None:
+async def test_context_assembler_citations_and_prompt_injection_defense(
+    rag_retriever: RAGRetriever,
+) -> None:
     # Index document with attempted prompt injection
     adversarial_doc = """# User Guide
 Normal text about system usage.

@@ -29,8 +29,16 @@ def test_agent_state_model_serialization() -> None:
     plan = TaskPlan(
         goal="Test goal",
         steps=[
-            PlanStep(step_id=1, description="Step 1", tool_name="read_file", arguments={"path": "a.txt"}),
-            PlanStep(step_id=2, description="Step 2", tool_name="write_file", arguments={"path": "b.txt", "content": "hello"}, dependencies=[1]),
+            PlanStep(
+                step_id=1, description="Step 1", tool_name="read_file", arguments={"path": "a.txt"}
+            ),
+            PlanStep(
+                step_id=2,
+                description="Step 2",
+                tool_name="write_file",
+                arguments={"path": "b.txt", "content": "hello"},
+                dependencies=[1],
+            ),
         ],
     )
     state = AgentState(

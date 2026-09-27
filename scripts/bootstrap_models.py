@@ -27,7 +27,7 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "url": "https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx",
         "relative_path": "silero_vad.onnx",
         "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3",
-        "description": "Silero VAD v5 ONNX (~2.2MB, Lightweight CPU Voice Activity Detection)"
+        "description": "Silero VAD v5 ONNX (~2.2MB, Lightweight CPU Voice Activity Detection)",
     }
 }
 
@@ -107,7 +107,9 @@ def download_model(model_key: str, force: bool = False, base_dir: str = DEFAULT_
         # Atomic move to final destination
         shutil.move(temp_path, dest_path)
         file_size_mb = os.path.getsize(dest_path) / (1024 * 1024)
-        logger.info(f"Successfully installed '{model_key}' ({file_size_mb:.2f} MB) at '{dest_path}'.")
+        logger.info(
+            f"Successfully installed '{model_key}' ({file_size_mb:.2f} MB) at '{dest_path}'."
+        )
         return True
 
     except Exception as err:
@@ -123,17 +125,15 @@ def main() -> int:
         "--model",
         default="all",
         choices=["all", "silero-vad"],
-        help="Target model to download (default: all)"
+        help="Target model to download (default: all)",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force redownload even if model already exists"
+        "--force", action="store_true", help="Force redownload even if model already exists"
     )
     parser.add_argument(
         "--models-dir",
         default=DEFAULT_MODELS_DIR,
-        help=f"Target directory for model weights (default: {DEFAULT_MODELS_DIR})"
+        help=f"Target directory for model weights (default: {DEFAULT_MODELS_DIR})",
     )
 
     args = parser.parse_args()

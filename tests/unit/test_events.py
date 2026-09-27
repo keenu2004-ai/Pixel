@@ -20,7 +20,7 @@ async def test_event_dispatch_and_subscription() -> None:
         session_id="sess_abc",
         previous_state=VoiceState.IDLE,
         current_state=VoiceState.LISTENING,
-        reason="Wake word triggered"
+        reason="Wake word triggered",
     )
 
     await dispatcher.publish(event)
@@ -46,7 +46,7 @@ async def test_event_unsubscription() -> None:
     event = StateChangeEvent(
         session_id="sess_abc",
         previous_state=VoiceState.LISTENING,
-        current_state=VoiceState.THINKING
+        current_state=VoiceState.THINKING,
     )
 
     await dispatcher.publish(event)

@@ -72,7 +72,9 @@ async def test_background_extraction_and_query_aggregation(memory_manager: Memor
     assert "facts" in ctx
     # Facts extracted from background extractor
     facts = ctx["facts"]
-    assert any("neovim" in str(f.get("value")).lower() or "editor" in f.get("key", "") for f in facts)
+    assert any(
+        "neovim" in str(f.get("value")).lower() or "editor" in f.get("key", "") for f in facts
+    )
 
 
 @pytest.mark.asyncio
@@ -80,7 +82,9 @@ async def test_memory_right_to_forget(memory_manager: MemoryManager) -> None:
     session_id = "sess_test_3"
     user_id = "u_test_3"
 
-    await memory_manager.store.set_fact(key="user.confidential_key", value="SecretValue42", user_id=user_id)
+    await memory_manager.store.set_fact(
+        key="user.confidential_key", value="SecretValue42", user_id=user_id
+    )
     await memory_manager.record_interaction(
         user_input="Remember that my SecretValue42 is stored.",
         agent_response="I have recorded it.",

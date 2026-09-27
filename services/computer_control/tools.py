@@ -99,7 +99,10 @@ class FocusWindowTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Title, app name, or window ID to focus"},
+                    "query": {
+                        "type": "string",
+                        "description": "Title, app name, or window ID to focus",
+                    },
                 },
                 "required": ["query"],
             },
@@ -117,7 +120,9 @@ class FocusWindowTool(BaseTool):
         return ToolExecutionResult(
             success=success,
             output={"focused": success, "query": query},
-            error=None if success else f"Window matching '{query}' not found or could not be focused",
+            error=None
+            if success
+            else f"Window matching '{query}' not found or could not be focused",
             duration_ms=duration_ms,
             evidence={"query": query, "focused": success},
         )
@@ -208,7 +213,11 @@ class CaptureWindowTool(BaseTool):
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "Optional window title or app name"},
-                    "redact": {"type": "boolean", "default": True, "description": "Whether to mask sensitive visual areas"},
+                    "redact": {
+                        "type": "boolean",
+                        "default": True,
+                        "description": "Whether to mask sensitive visual areas",
+                    },
                 },
             },
             timeout_ms=5000,

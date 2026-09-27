@@ -51,7 +51,9 @@ def test_device_registry_pairing_flow() -> None:
     assert DeviceCapability.ANDROID_CONTROL in dev.capabilities
 
     # 4. Authenticate mTLS connection
-    auth_ok, auth_err = registry.authenticate_device_connection("android-pixel-01", resp.certificate_pem)
+    auth_ok, auth_err = registry.authenticate_device_connection(
+        "android-pixel-01", resp.certificate_pem
+    )
     assert auth_ok is True
     assert auth_err is None
 
@@ -59,9 +61,21 @@ def test_device_registry_pairing_flow() -> None:
 def test_registry_capability_queries() -> None:
     registry = DeviceRegistry()
     for role, dev_id, caps in [
-        (DeviceRole.PRIMARY_PC, "pc-01", [DeviceCapability.DESKTOP_CONTROL, DeviceCapability.CODE_EXECUTION]),
-        (DeviceRole.MOBILE_NODE, "phone-01", [DeviceCapability.ANDROID_CONTROL, DeviceCapability.CAMERA]),
-        (DeviceRole.SATELLITE_MIC_SPEAKER, "sat-01", [DeviceCapability.MICROPHONE, DeviceCapability.SPEAKER]),
+        (
+            DeviceRole.PRIMARY_PC,
+            "pc-01",
+            [DeviceCapability.DESKTOP_CONTROL, DeviceCapability.CODE_EXECUTION],
+        ),
+        (
+            DeviceRole.MOBILE_NODE,
+            "phone-01",
+            [DeviceCapability.ANDROID_CONTROL, DeviceCapability.CAMERA],
+        ),
+        (
+            DeviceRole.SATELLITE_MIC_SPEAKER,
+            "sat-01",
+            [DeviceCapability.MICROPHONE, DeviceCapability.SPEAKER],
+        ),
     ]:
         req = PairingRequest(
             device_id=dev_id,
@@ -162,4 +176,3 @@ def test_presence_manager_heartbeat_and_stale_sweep() -> None:
     rec_after = presence.get_presence("sat-01")
     assert rec_after is not None
     assert rec_after.presence_state == DevicePresenceState.OFFLINE
-

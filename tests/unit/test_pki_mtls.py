@@ -51,11 +51,12 @@ def test_tampered_certificate_rejected() -> None:
     b64_content = "".join(line for line in lines if not line.startswith("-----"))
     cert_envelope = json.loads(base64.b64decode(b64_content).decode())
 
-
     # Tamper with device_id in payload without updating signature
     cert_envelope["payload"]["device_id"] = "attacker-node"
     tampered_b64 = base64.b64encode(json.dumps(cert_envelope).encode()).decode()
-    tampered_pem = f"-----BEGIN PIXEL CERTIFICATE-----\n{tampered_b64}\n-----END PIXEL CERTIFICATE-----"
+    tampered_pem = (
+        f"-----BEGIN PIXEL CERTIFICATE-----\n{tampered_b64}\n-----END PIXEL CERTIFICATE-----"
+    )
 
     is_valid, error, payload = pki.validate_certificate(tampered_pem)
     assert is_valid is False
@@ -135,4 +136,3 @@ def test_pairing_challenge_and_pin_verification() -> None:
     replay_resp = pki.verify_pairing_confirmation(good_conf, req)
     assert replay_resp.success is False
     assert "not found" in (replay_resp.error_message or "")
-

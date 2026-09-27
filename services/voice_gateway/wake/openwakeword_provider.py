@@ -20,11 +20,12 @@ logger = logging.getLogger("pixel.voice.wake_word")
 
 class WakeWordModelIntegrityError(PixelException):
     """Raised when wake word model files fail integrity verification or checksum checks."""
+
     def __init__(self, message: str) -> None:
         super().__init__(
             message=message,
             category=ErrorCategory.PROVIDER_ERROR,
-            code="WAKE_MODEL_INTEGRITY_FAILURE"
+            code="WAKE_MODEL_INTEGRITY_FAILURE",
         )
 
 
@@ -42,7 +43,7 @@ class OpenWakeWordConfig:
     ) -> None:
         self.model_paths = model_paths or {
             "hey_pixel": "data/models/hey_pixel.onnx",
-            "oye_pixel": "data/models/oye_pixel.onnx"
+            "oye_pixel": "data/models/oye_pixel.onnx",
         }
         self.expected_sha256 = expected_sha256 or {}
         self.threshold = threshold
@@ -83,6 +84,7 @@ class OpenWakeWordProvider(BaseWakeProvider):
             return False
         try:
             import onnxruntime  # noqa: F401
+
             return True
         except ImportError:
             return False
@@ -123,9 +125,7 @@ class OpenWakeWordProvider(BaseWakeProvider):
 
             for phrase, path in self.config.model_paths.items():
                 session = ort.InferenceSession(
-                    path,
-                    sess_options=opts,
-                    providers=["CPUExecutionProvider"]
+                    path, sess_options=opts, providers=["CPUExecutionProvider"]
                 )
                 self._sessions[phrase] = session
 
@@ -136,14 +136,14 @@ class OpenWakeWordProvider(BaseWakeProvider):
             raise PixelException(
                 message="onnxruntime is required for OpenWakeWordProvider.",
                 category=ErrorCategory.PROVIDER_ERROR,
-                code="ONNXRUNTIME_MISSING"
+                code="ONNXRUNTIME_MISSING",
             ) from err
         except Exception as err:
             self._initialization_error = str(err)
             raise PixelException(
                 message=f"Failed to load OpenWakeWord model sessions: {err}",
                 category=ErrorCategory.PROVIDER_ERROR,
-                code="WAKE_LOAD_FAILURE"
+                code="WAKE_LOAD_FAILURE",
             ) from err
 
     def _get_or_create_session_state(self, session_id: str) -> _WakeSessionState:
@@ -196,7 +196,7 @@ class OpenWakeWordProvider(BaseWakeProvider):
         best_score: float = 0.0
 
         # Prepare input slice
-        window_input = sess_state.buffer[-self.config.chunk_samples:]
+        window_input = sess_state.buffer[-self.config.chunk_samples :]
         input_tensor = np.expand_dims(window_input, axis=0)  # Shape (1, N)
 
         for phrase, session in self._sessions.items():
@@ -220,7 +220,7 @@ class OpenWakeWordProvider(BaseWakeProvider):
                 session_id=session_id,
                 phrase=readable_phrase,
                 confidence=best_score,
-                offset_ms=frame.timestamp_ms
+                offset_ms=frame.timestamp_ms,
             )
 
         return None

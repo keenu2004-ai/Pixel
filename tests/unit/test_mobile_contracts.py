@@ -1,6 +1,5 @@
 """Unit tests for Mobile Assistant, Device Metadata, and Transport Contracts."""
 
-
 from packages.contracts.mobile import (
     MobileApprovalRequest,
     MobileApprovalResponse,

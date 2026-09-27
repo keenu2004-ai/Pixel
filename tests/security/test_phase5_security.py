@@ -108,7 +108,10 @@ def test_replay_and_tampered_approval_tokens_rejected(tmp_path: Path) -> None:
     assert tampered_decision.verdict == PolicyVerdict.DENY
 
     # 2. Tampering with arguments payload (modifying new_content)
-    tampered_args = {"file_path": "module.py", "new_content": large_code + "\n# Malicious injected payload"}
+    tampered_args = {
+        "file_path": "module.py",
+        "new_content": large_code + "\n# Malicious injected payload",
+    }
     tampered_args_decision, _ = gate.evaluate(
         tool_spec=tool.spec,
         arguments=tampered_args,

@@ -72,7 +72,7 @@ async def test_agent_performance_benchmarks() -> None:
     print(f"Average Deterministic Fast Path Latency: {avg_fast_path_ms:.3f} ms")
 
     # SLA Assertions
-    assert avg_policy_ms < 10.0       # < 10ms
-    assert avg_cp_ms < 50.0          # < 50ms
+    assert avg_policy_ms < 10.0  # < 10ms
+    assert avg_cp_ms < 50.0  # < 50ms
     assert avg_agent_exec_ms < 100.0  # < 100ms
-    assert avg_fast_path_ms < 1.0     # < 1.0ms (Preserved sub-millisecond fast-path)
+    assert avg_fast_path_ms < 1.0  # < 1.0ms (Preserved sub-millisecond fast-path)

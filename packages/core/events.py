@@ -48,5 +48,5 @@ class EventDispatcher:
         except Exception as err:
             logger.error(
                 f"Error in event handler for {type(event).__name__} (Event ID: {event.event_id}): {err}",
-                exc_info=True
+                exc_info=True,
             )

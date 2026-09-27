@@ -37,7 +37,9 @@ class IsolatedTestRunner:
         """Ensures test target arguments contain no shell injection metacharacters."""
         for target in test_targets:
             if SHELL_INJECTION_PATTERN.search(target):
-                raise ValueError(f"Security violation: Illegal characters detected in test target '{target}'")
+                raise ValueError(
+                    f"Security violation: Illegal characters detected in test target '{target}'"
+                )
 
     def run_tests(
         self,
@@ -64,6 +66,7 @@ class IsolatedTestRunner:
 
         # Ensure environment does not write or reuse stale pyc files
         import os
+
         env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
 
         start_time = time.perf_counter()
@@ -82,7 +85,11 @@ class IsolatedTestRunner:
             exit_code = res.returncode
         except subprocess.TimeoutExpired as exc:
             duration_ms = int((time.perf_counter() - start_time) * 1000)
-            timeout_out = exc.stdout.decode("utf-8", errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "Execution timed out.")
+            timeout_out = (
+                exc.stdout.decode("utf-8", errors="replace")
+                if isinstance(exc.stdout, bytes)
+                else (exc.stdout or "Execution timed out.")
+            )
             return TestExecutionResult(
                 passed=0,
                 failed=1,
@@ -175,7 +182,9 @@ class IsolatedTestRunner:
         failures: list[TestFailureDetail] = []
 
         # 1. Parse from short test summary info: e.g. "FAILED test_failing.py::test_bad - assert 1 == 2"
-        summary_failures = re.findall(r"(?:FAILED|ERROR)\s+([a-zA-Z0-9_\-\./\\]+::[a-zA-Z0-9_\-\.]+)(?:\s+-\s+(.*))?", output)
+        summary_failures = re.findall(
+            r"(?:FAILED|ERROR)\s+([a-zA-Z0-9_\-\./\\]+::[a-zA-Z0-9_\-\.]+)(?:\s+-\s+(.*))?", output
+        )
         for t_name, reason in summary_failures:
             failures.append(
                 TestFailureDetail(
@@ -187,7 +196,9 @@ class IsolatedTestRunner:
 
         # 2. Parse from progress lines: e.g. "test_failing.py::test_bad FAILED"
         if not failures:
-            prog_failures = re.findall(r"([a-zA-Z0-9_\-\./\\]+::[a-zA-Z0-9_\-\.]+)\s+FAILED", output)
+            prog_failures = re.findall(
+                r"([a-zA-Z0-9_\-\./\\]+::[a-zA-Z0-9_\-\.]+)\s+FAILED", output
+            )
             for t_name in prog_failures:
                 failures.append(
                     TestFailureDetail(
@@ -199,7 +210,9 @@ class IsolatedTestRunner:
 
         # 3. Parse from failure block headers: "___ test_name ___"
         if not failures:
-            indiv_failures = re.findall(r"_{3,}\s+([^\n_]+)\s+_{3,}\n(.*?)(?=\n_{3,}\s+|\n={3,}|\Z)", output, re.DOTALL)
+            indiv_failures = re.findall(
+                r"_{3,}\s+([^\n_]+)\s+_{3,}\n(.*?)(?=\n_{3,}\s+|\n={3,}|\Z)", output, re.DOTALL
+            )
             for name, body in indiv_failures:
                 body_lines = [ln.strip() for ln in body.strip().splitlines() if ln.strip()]
                 err_msg = body_lines[-1] if body_lines else "Assertion failed"

@@ -71,7 +71,9 @@ class SQLiteMemoryStore(BaseMemoryStore):
                     updated_at TEXT NOT NULL
                 )
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_facts_user_key ON pixel_facts(user_id, key, is_active)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_facts_user_key ON pixel_facts(user_id, key, is_active)"
+            )
 
             # 2. Episodic Memory Table
             cursor.execute("""
@@ -86,7 +88,9 @@ class SQLiteMemoryStore(BaseMemoryStore):
                     created_at TEXT NOT NULL
                 )
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_episodes_user ON pixel_episodes(user_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_episodes_user ON pixel_episodes(user_id)"
+            )
             conn.commit()
 
     async def get_fact(self, key: str, user_id: str) -> Any | None:
@@ -129,7 +133,17 @@ class SQLiteMemoryStore(BaseMemoryStore):
                 INSERT INTO pixel_facts (fact_id, user_id, category, key, value_json, confidence, provenance, is_active, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 """,
-                (new_fact_id, user_id, category, key, val_json, confidence, provenance, now_str, now_str),
+                (
+                    new_fact_id,
+                    user_id,
+                    category,
+                    key,
+                    val_json,
+                    confidence,
+                    provenance,
+                    now_str,
+                    now_str,
+                ),
             )
             conn.commit()
 
@@ -205,7 +219,12 @@ class SQLiteMemoryStore(BaseMemoryStore):
             deleted_count += cursor.rowcount
             conn.commit()
 
-        logger.info("Right to Forget: Purged %d records for keyword '%s' (user: %s)", deleted_count, keyword, user_id)
+        logger.info(
+            "Right to Forget: Purged %d records for keyword '%s' (user: %s)",
+            deleted_count,
+            keyword,
+            user_id,
+        )
         return deleted_count
 
     async def record_episode(
@@ -251,7 +270,9 @@ class SQLiteMemoryStore(BaseMemoryStore):
             metadata=metadata or {},
         )
 
-    async def search_episodic(self, query: str, user_id: str, limit: int = 5) -> list[dict[str, Any]]:
+    async def search_episodic(
+        self, query: str, user_id: str, limit: int = 5
+    ) -> list[dict[str, Any]]:
         """Semantic vector search over user's episodic history."""
         query_vec = await self.embedding_provider.embed_text(query)
 
@@ -264,14 +285,16 @@ class SQLiteMemoryStore(BaseMemoryStore):
         for r in rows:
             emb = json.loads(r["embedding_json"])
             sim = _cosine_similarity(query_vec, emb)
-            results.append({
-                "episode_id": r["episode_id"],
-                "summary": r["summary"],
-                "session_id": r["session_id"],
-                "similarity": sim,
-                "metadata": json.loads(r["metadata_json"]),
-                "created_at": r["created_at"],
-            })
+            results.append(
+                {
+                    "episode_id": r["episode_id"],
+                    "summary": r["summary"],
+                    "session_id": r["session_id"],
+                    "similarity": sim,
+                    "metadata": json.loads(r["metadata_json"]),
+                    "created_at": r["created_at"],
+                }
+            )
 
         # Sort descending by similarity
         results.sort(key=lambda x: float(x["similarity"]), reverse=True)

@@ -19,7 +19,9 @@ from services.voice_gateway.vad.silero_vad import (
 )
 
 
-def _generate_synthetic_pcm_frame(num_samples: int = 512, frequency_hz: float = 440.0) -> AudioFrame:
+def _generate_synthetic_pcm_frame(
+    num_samples: int = 512, frequency_hz: float = 440.0
+) -> AudioFrame:
     """Generates a synthetic 16kHz 16-bit mono sine wave PCM frame (32ms)."""
     t = np.linspace(0, num_samples / 16000.0, num_samples, endpoint=False)
     # Sine wave between -0.8 and 0.8
@@ -29,7 +31,7 @@ def _generate_synthetic_pcm_frame(num_samples: int = 512, frequency_hz: float = 
         sample_rate=16000,
         channels=1,
         pcm_data=pcm_int16.tobytes(),
-        timestamp_ms=int(time.time() * 1000)
+        timestamp_ms=int(time.time() * 1000),
     )
 
 
@@ -38,7 +40,9 @@ def _generate_synthetic_pcm_frame(num_samples: int = 512, frequency_hz: float = 
 async def test_silero_vad_latency_benchmark() -> None:
     model_path = "data/models/silero_vad.onnx"
     if not os.path.exists(model_path):
-        pytest.skip(f"Silero VAD model not found at '{model_path}'. Run 'python scripts/bootstrap_models.py' first.")
+        pytest.skip(
+            f"Silero VAD model not found at '{model_path}'. Run 'python scripts/bootstrap_models.py' first."
+        )
 
     try:
         import onnxruntime  # noqa: F401
@@ -51,7 +55,9 @@ async def test_silero_vad_latency_benchmark() -> None:
         while chunk := f.read(65536):
             sha256.update(chunk)
     actual_hash = sha256.hexdigest().lower()
-    assert actual_hash == SILERO_V5_OFFICIAL_SHA256.lower(), "Local model failed SHA-256 integrity check!"
+    assert actual_hash == SILERO_V5_OFFICIAL_SHA256.lower(), (
+        "Local model failed SHA-256 integrity check!"
+    )
 
     config = SileroVADConfig(model_path=model_path, expected_sha256=SILERO_V5_OFFICIAL_SHA256)
     test_frame = _generate_synthetic_pcm_frame()
@@ -95,11 +101,15 @@ async def test_silero_vad_latency_benchmark() -> None:
     print("Warm Iterations      : 50 frames")
     print("-" * 65)
     print(f"Cold-Start Latency   : {cold_start_ms:.2f} ms (Load + Session + 1st Frame)")
-    print(f"Warm Inference (Avg) : {avg_warm_ms:.3f} ms / frame (~{32.0 / avg_warm_ms:.1f}x Real-time)")
+    print(
+        f"Warm Inference (Avg) : {avg_warm_ms:.3f} ms / frame (~{32.0 / avg_warm_ms:.1f}x Real-time)"
+    )
     print(f"Warm Inference (P95) : {p95_warm_ms:.3f} ms / frame")
     print(f"Warm Inference Min   : {min_warm_ms:.3f} ms")
     print(f"Warm Inference Max   : {max_warm_ms:.3f} ms")
     print("=" * 65)
 
     # Sanity threshold assertions: Warm inference on CPU must easily be < 15ms per 32ms frame
-    assert avg_warm_ms < 15.0, f"Average warm inference latency {avg_warm_ms}ms exceeded 15ms ceiling"
+    assert avg_warm_ms < 15.0, (
+        f"Average warm inference latency {avg_warm_ms}ms exceeded 15ms ceiling"
+    )

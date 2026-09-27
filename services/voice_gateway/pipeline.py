@@ -50,7 +50,9 @@ class VoicePipeline:
             res = await self.intent_handler(text, session_id)
             return str(res)
 
-        response_text, _, _ = await self.intent_engine.handle_transcript(text, session_id=session_id)
+        response_text, _, _ = await self.intent_engine.handle_transcript(
+            text, session_id=session_id
+        )
         return response_text
 
     async def process_frame(
@@ -65,7 +67,9 @@ class VoicePipeline:
         # 2. Check for Barge-in Interruption
         if session.state == VoiceState.SPEAKING:
             if vad_event.state == VADState.SPEECH_START or vad_event.speech_probability > 0.8:
-                logger.info("Barge-in detected during SPEAKING state in session [%s]", session.session_id)
+                logger.info(
+                    "Barge-in detected during SPEAKING state in session [%s]", session.session_id
+                )
                 session.cancel_active_playback()
                 interrupted_evt = session.transition_to(
                     VoiceState.INTERRUPTED, reason="User barged in / started speaking"
@@ -81,7 +85,9 @@ class VoicePipeline:
 
         # 3. If IDLE, listen for wake word
         if session.state == VoiceState.IDLE:
-            wake_event = await self.wake_provider.process_frame(frame, session_id=session.session_id)
+            wake_event = await self.wake_provider.process_frame(
+                frame, session_id=session.session_id
+            )
             if wake_event is not None:
                 yield wake_event
                 listening_evt = session.transition_to(
@@ -99,7 +105,9 @@ class VoicePipeline:
             if vad_event.state == VADState.SPEECH_END or (
                 vad_event.state == VADState.SILENCE and len(self._speech_buffer) >= 16000 * 2 * 1.0
             ):
-                thinking_evt = session.transition_to(VoiceState.THINKING, reason="Speech ended, transcribing")
+                thinking_evt = session.transition_to(
+                    VoiceState.THINKING, reason="Speech ended, transcribing"
+                )
                 yield thinking_evt
 
                 # Transcribe accumulated speech
@@ -112,7 +120,9 @@ class VoicePipeline:
 
                 if transcript.text.strip():
                     # Handle intent via real DeterministicIntentEngine
-                    response_text = await self._resolve_intent_response(transcript.text, session.session_id)
+                    response_text = await self._resolve_intent_response(
+                        transcript.text, session.session_id
+                    )
 
                     # Transition to SPEAKING and synthesize TTS
                     speaking_evt = session.transition_to(
@@ -134,5 +144,7 @@ class VoicePipeline:
                         )
                         yield idle_evt
                 else:
-                    idle_evt = session.transition_to(VoiceState.IDLE, reason="No speech detected in audio")
+                    idle_evt = session.transition_to(
+                        VoiceState.IDLE, reason="No speech detected in audio"
+                    )
                     yield idle_evt

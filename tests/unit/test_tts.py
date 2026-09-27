@@ -31,6 +31,7 @@ class TestEdgeTTS:
 
             with pytest.raises(ProviderUnavailableException):
                 import asyncio
+
                 asyncio.run(_run())
 
     @pytest.mark.asyncio
@@ -73,6 +74,7 @@ class TestKokoroTTS:
 
     def test_missing_model_raises_model_exception(self, tmp_path: object) -> None:
         import pathlib
+
         path = pathlib.Path(str(tmp_path)) / "nonexistent.onnx"
         tts = KokoroTTSProvider(model_path=str(path))
         with pytest.raises(ModelException):

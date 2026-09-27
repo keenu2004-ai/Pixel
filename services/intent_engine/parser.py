@@ -61,7 +61,12 @@ class DeterministicIntentParser:
         norm = text.lower().strip()
 
         # Hindi phrases: "aadha ghanta" (half hour), "dedh ghanta" (1.5 hours), "dhai ghante" (2.5 hours)
-        if "aadha ghanta" in norm or "aadhe ghante" in norm or "half hour" in norm or "half an hour" in norm:
+        if (
+            "aadha ghanta" in norm
+            or "aadhe ghante" in norm
+            or "half hour" in norm
+            or "half an hour" in norm
+        ):
             total_seconds += 1800
         if "dedh ghanta" in norm or "dedh ghante" in norm:
             total_seconds += 5400
@@ -112,7 +117,9 @@ class DeterministicIntentParser:
         if timer_data is not None:
             return IntentPacket(
                 raw_query=text,
-                language="hi" if any(w in norm for w in ["karo", "laga", "shuru", "band", "kitna"]) else "en",
+                language="hi"
+                if any(w in norm for w in ["karo", "laga", "shuru", "band", "kitna"])
+                else "en",
                 routing_type=IntentRoutingType.DETERMINISTIC_FAST_PATH,
                 target_intent="TIMER",
                 extracted_entities=timer_data.model_dump(),
@@ -125,7 +132,9 @@ class DeterministicIntentParser:
         if alarm_data is not None:
             return IntentPacket(
                 raw_query=text,
-                language="hi" if any(w in norm for w in ["karo", "laga", "utha", "subah", "shaam", "baje"]) else "en",
+                language="hi"
+                if any(w in norm for w in ["karo", "laga", "utha", "subah", "shaam", "baje"])
+                else "en",
                 routing_type=IntentRoutingType.DETERMINISTIC_FAST_PATH,
                 target_intent="ALARM",
                 extracted_entities=alarm_data.model_dump(),
@@ -138,7 +147,9 @@ class DeterministicIntentParser:
         if reminder_data is not None:
             return IntentPacket(
                 raw_query=text,
-                language="hi" if any(w in norm for w in ["yaad", "dilao", "dila", "karo", "subah", "shaam"]) else "en",
+                language="hi"
+                if any(w in norm for w in ["yaad", "dilao", "dila", "karo", "subah", "shaam"])
+                else "en",
                 routing_type=IntentRoutingType.DETERMINISTIC_FAST_PATH,
                 target_intent="REMINDER",
                 extracted_entities=reminder_data.model_dump(),
@@ -151,7 +162,9 @@ class DeterministicIntentParser:
         if volume_data is not None:
             return IntentPacket(
                 raw_query=text,
-                language="hi" if any(w in norm for w in ["awaaz", "badhao", "kam", "karo", "band"]) else "en",
+                language="hi"
+                if any(w in norm for w in ["awaaz", "badhao", "kam", "karo", "band"])
+                else "en",
                 routing_type=IntentRoutingType.DETERMINISTIC_FAST_PATH,
                 target_intent="VOLUME",
                 extracted_entities=volume_data.model_dump(),
@@ -164,7 +177,9 @@ class DeterministicIntentParser:
         if app_data is not None:
             return IntentPacket(
                 raw_query=text,
-                language="hi" if any(w in norm for w in ["kholo", "chalao", "band", "karo"]) else "en",
+                language="hi"
+                if any(w in norm for w in ["kholo", "chalao", "band", "karo"])
+                else "en",
                 routing_type=IntentRoutingType.DETERMINISTIC_FAST_PATH,
                 target_intent="APP_LAUNCH",
                 extracted_entities=app_data.model_dump(),
@@ -177,7 +192,9 @@ class DeterministicIntentParser:
         if sys_data is not None:
             return IntentPacket(
                 raw_query=text,
-                language="hi" if any(w in norm for w in ["kya", "kitne", "baje", "taareekh", "samay", "hai"]) else "en",
+                language="hi"
+                if any(w in norm for w in ["kya", "kitne", "baje", "taareekh", "samay", "hai"])
+                else "en",
                 routing_type=IntentRoutingType.DETERMINISTIC_FAST_PATH,
                 target_intent="SYSTEM_QUERY",
                 extracted_entities=sys_data.model_dump(),
@@ -207,7 +224,9 @@ class DeterministicIntentParser:
             return TimerIntentData(action=TimerAction.CANCEL)
 
         # Check status
-        if any(w in text for w in ["status", "how much left", "kitna bacha", "bache", "kitna time"]):
+        if any(
+            w in text for w in ["status", "how much left", "kitna bacha", "bache", "kitna time"]
+        ):
             return TimerIntentData(action=TimerAction.STATUS)
 
         # Parse duration
@@ -220,16 +239,22 @@ class DeterministicIntentParser:
     @classmethod
     def _match_alarm(cls, text: str, ref_time: datetime) -> AlarmIntentData | None:
         """Matches alarm commands."""
-        is_alarm_phrase = any(w in text for w in ["alarm", "alaram", "wake me up", "utha dena", "uthana", "wake up"])
+        is_alarm_phrase = any(
+            w in text for w in ["alarm", "alaram", "wake me up", "utha dena", "uthana", "wake up"]
+        )
         if not is_alarm_phrase:
             return None
 
         # Check list
-        if any(w in text for w in ["list", "show", "tell", "dikhao", "batao", "konse"]) and not any(w in text for w in ["set", "laga", "create"]):
+        if any(w in text for w in ["list", "show", "tell", "dikhao", "batao", "konse"]) and not any(
+            w in text for w in ["set", "laga", "create"]
+        ):
             return AlarmIntentData(action=AlarmAction.LIST)
 
         # Check cancel
-        if any(w in text for w in ["cancel", "delete", "remove", "turn off", "stop", "band", "hatao"]):
+        if any(
+            w in text for w in ["cancel", "delete", "remove", "turn off", "stop", "band", "hatao"]
+        ):
             return AlarmIntentData(action=AlarmAction.CANCEL)
 
         # Resolve target alarm datetime
@@ -251,12 +276,16 @@ class DeterministicIntentParser:
     @classmethod
     def _match_reminder(cls, text: str, ref_time: datetime) -> ReminderIntentData | None:
         """Matches reminder commands."""
-        is_reminder = any(w in text for w in ["remind", "reminder", "yaad dilana", "yaad dilao", "yaad dila dena"])
+        is_reminder = any(
+            w in text for w in ["remind", "reminder", "yaad dilana", "yaad dilao", "yaad dila dena"]
+        )
         if not is_reminder:
             return None
 
         # Check list
-        if any(w in text for w in ["list", "show", "dikhao", "batao"]) and not any(w in text for w in ["set", "create", "karo", "dilao"]):
+        if any(w in text for w in ["list", "show", "dikhao", "batao"]) and not any(
+            w in text for w in ["set", "create", "karo", "dilao"]
+        ):
             return ReminderIntentData(action=ReminderAction.LIST, text="")
 
         # Check cancel
@@ -331,8 +360,12 @@ class DeterministicIntentParser:
             return None
 
         # Must contain open/launch/start/kholo/chalao or close/band
-        is_open = any(w in text for w in ["open", "launch", "start", "run", "kholo", "chalao", "khol"])
-        is_close = any(w in text for w in ["close", "exit", "quit", "band karo", "band kar do", "kill"])
+        is_open = any(
+            w in text for w in ["open", "launch", "start", "run", "kholo", "chalao", "khol"]
+        )
+        is_close = any(
+            w in text for w in ["close", "exit", "quit", "band karo", "band kar do", "kill"]
+        )
 
         if not (is_open or is_close):
             return None
@@ -363,15 +396,44 @@ class DeterministicIntentParser:
     def _match_system_query(cls, text: str) -> SystemQueryIntentData | None:
         """Matches system queries for time, date, battery, and status."""
         # Time query
-        if any(w in text for w in ["what time is it", "tell me the time", "current time", "samay kya hai", "kitne baje hain", "kya time hua"]):
+        if any(
+            w in text
+            for w in [
+                "what time is it",
+                "tell me the time",
+                "current time",
+                "samay kya hai",
+                "kitne baje hain",
+                "kya time hua",
+            ]
+        ):
             return SystemQueryIntentData(query_type=SystemQueryType.TIME)
 
         # Date query
-        if any(w in text for w in ["what is the date", "today's date", "what day is it", "aaj konsi taareekh", "aaj ki date", "aaj konsa din"]):
+        if any(
+            w in text
+            for w in [
+                "what is the date",
+                "today's date",
+                "what day is it",
+                "aaj konsi taareekh",
+                "aaj ki date",
+                "aaj konsa din",
+            ]
+        ):
             return SystemQueryIntentData(query_type=SystemQueryType.DATE)
 
         # Battery query
-        if any(w in text for w in ["battery", "battery level", "battery status", "charge kitna hai", "battery kitni hai"]):
+        if any(
+            w in text
+            for w in [
+                "battery",
+                "battery level",
+                "battery status",
+                "charge kitna hai",
+                "battery kitni hai",
+            ]
+        ):
             return SystemQueryIntentData(query_type=SystemQueryType.BATTERY)
 
         # Overall status query

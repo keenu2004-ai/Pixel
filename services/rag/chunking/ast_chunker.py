@@ -99,4 +99,6 @@ class ASTCodeChunker:
         document_id: str = "doc_code",
     ) -> list[DocumentChunk]:
         """Chunking method alias."""
-        return cls.chunk_python_code(code_text=code_text, source_uri=source_uri, document_id=document_id)
+        return cls.chunk_python_code(
+            code_text=code_text, source_uri=source_uri, document_id=document_id
+        )

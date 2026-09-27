@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # 1. Filesystem Tools (Sandbox Enforced)
 # ---------------------------------------------------------------------------
 
+
 class ReadFileTool(BaseTool):
     """Reads content of a local text file within permitted directories."""
 
@@ -49,7 +50,9 @@ class ReadFileTool(BaseTool):
         if not path.exists():
             return ToolExecutionResult(success=False, error=f"File not found: '{file_path}'")
         if not path.is_file():
-            return ToolExecutionResult(success=False, error=f"Path is not a regular file: '{file_path}'")
+            return ToolExecutionResult(
+                success=False, error=f"Path is not a regular file: '{file_path}'"
+            )
 
         try:
             content = path.read_text(encoding="utf-8")
@@ -93,7 +96,11 @@ class WriteFileTool(BaseTool):
             return ToolExecutionResult(
                 success=True,
                 output=f"Successfully wrote {len(content)} characters to {file_path}",
-                evidence={"path": str(path.resolve()), "size_bytes": len(content.encode("utf-8")), "exists": True},
+                evidence={
+                    "path": str(path.resolve()),
+                    "size_bytes": len(content.encode("utf-8")),
+                    "exists": True,
+                },
             )
         except Exception as err:
             return ToolExecutionResult(success=False, error=f"Failed to write file: {err}")
@@ -111,7 +118,11 @@ class ListDirectoryTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "path": {"type": "string", "description": "Directory path to list", "default": "."}
+                    "path": {
+                        "type": "string",
+                        "description": "Directory path to list",
+                        "default": ".",
+                    }
                 },
             },
             audit_level=AuditLevel.BASIC,
@@ -126,7 +137,11 @@ class ListDirectoryTool(BaseTool):
 
         try:
             items = [
-                {"name": item.name, "is_dir": item.is_dir(), "size": item.stat().st_size if item.is_file() else 0}
+                {
+                    "name": item.name,
+                    "is_dir": item.is_dir(),
+                    "size": item.stat().st_size if item.is_file() else 0,
+                }
                 for item in path.iterdir()
             ]
             return ToolExecutionResult(
@@ -141,6 +156,7 @@ class ListDirectoryTool(BaseTool):
 # ---------------------------------------------------------------------------
 # 2. OS & System Capabilities
 # ---------------------------------------------------------------------------
+
 
 class SetVolumeTool(BaseTool):
     """Adjusts OS master volume level."""
@@ -157,7 +173,12 @@ class SetVolumeTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "level": {"type": "integer", "description": "Target volume level (0 to 100)", "minimum": 0, "maximum": 100}
+                    "level": {
+                        "type": "integer",
+                        "description": "Target volume level (0 to 100)",
+                        "minimum": 0,
+                        "maximum": 100,
+                    }
                 },
                 "required": ["level"],
             },
@@ -189,7 +210,10 @@ class LaunchAppTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "app_name": {"type": "string", "description": "Name of the application to launch"}
+                    "app_name": {
+                        "type": "string",
+                        "description": "Name of the application to launch",
+                    }
                 },
                 "required": ["app_name"],
             },
@@ -236,6 +260,7 @@ class GetSystemInfoTool(BaseTool):
 # 3. Knowledge & Memory Tools
 # ---------------------------------------------------------------------------
 
+
 class QueryMemoryTool(BaseTool):
     """Queries user semantic facts and episodic interaction history."""
 
@@ -252,7 +277,11 @@ class QueryMemoryTool(BaseTool):
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "Search query for memory context"},
-                    "user_id": {"type": "string", "description": "Target user ID", "default": "default_user"},
+                    "user_id": {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "default": "default_user",
+                    },
                 },
                 "required": ["query"],
             },
@@ -262,11 +291,16 @@ class QueryMemoryTool(BaseTool):
     async def execute(self, arguments: dict[str, Any], session_id: str) -> ToolExecutionResult:
         query = str(arguments.get("query", "")).strip()
         user_id = str(arguments.get("user_id", "default_user"))
-        context = await self.memory_manager.query_context(query=query, session_id=session_id, user_id=user_id)
+        context = await self.memory_manager.query_context(
+            query=query, session_id=session_id, user_id=user_id
+        )
         return ToolExecutionResult(
             success=True,
             output=context,
-            evidence={"facts_count": len(context.get("facts", [])), "episodes_count": len(context.get("episodes", []))},
+            evidence={
+                "facts_count": len(context.get("facts", [])),
+                "episodes_count": len(context.get("episodes", [])),
+            },
         )
 
 
@@ -286,7 +320,11 @@ class SearchKnowledgeTool(BaseTool):
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "Search query"},
-                    "top_k": {"type": "integer", "description": "Number of items to retrieve", "default": 3},
+                    "top_k": {
+                        "type": "integer",
+                        "description": "Number of items to retrieve",
+                        "default": 3,
+                    },
                 },
                 "required": ["query"],
             },

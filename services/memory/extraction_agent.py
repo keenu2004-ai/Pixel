@@ -19,17 +19,47 @@ class MemoryExtractor:
 
     # Common fact extraction heuristics
     PREFERENCE_PATTERNS = [
-        (re.compile(r"(?:i prefer|my preference is|i like|i love)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE), "user.preference"),
-        (re.compile(r"(?:i use|my editor is|my ide is)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE), "user.editor"),
+        (
+            re.compile(
+                r"(?:i prefer|my preference is|i like|i love)\s+([a-zA-Z0-9_\-\.\s]{2,30})",
+                re.IGNORECASE,
+            ),
+            "user.preference",
+        ),
+        (
+            re.compile(
+                r"(?:i use|my editor is|my ide is)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE
+            ),
+            "user.editor",
+        ),
         (re.compile(r"(?:my name is|call me|i am)\s+([a-zA-Z]{2,25})", re.IGNORECASE), "user.name"),
-        (re.compile(r"(?:my timezone is|i live in|i am in)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE), "user.location"),
-        (re.compile(r"(?:meri pasand|mujhe pasand hai)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE), "user.preference"),
-        (re.compile(r"(?:mera naam|mujhe bulate hain)\s+([a-zA-Z]{2,25})", re.IGNORECASE), "user.name"),
+        (
+            re.compile(
+                r"(?:my timezone is|i live in|i am in)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE
+            ),
+            "user.location",
+        ),
+        (
+            re.compile(
+                r"(?:meri pasand|mujhe pasand hai)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE
+            ),
+            "user.preference",
+        ),
+        (
+            re.compile(r"(?:mera naam|mujhe bulate hain)\s+([a-zA-Z]{2,25})", re.IGNORECASE),
+            "user.name",
+        ),
     ]
 
     # Explicit correction/negation patterns ("I don't use X anymore", "Don't call me Y")
     CORRECTION_PATTERNS = [
-        (re.compile(r"(?:i don't like|i no longer use|i stopped using)\s+([a-zA-Z0-9_\-\.\s]{2,30})", re.IGNORECASE), "user.preference"),
+        (
+            re.compile(
+                r"(?:i don't like|i no longer use|i stopped using)\s+([a-zA-Z0-9_\-\.\s]{2,30})",
+                re.IGNORECASE,
+            ),
+            "user.preference",
+        ),
     ]
 
     def __init__(self, memory_store: SQLiteMemoryStore) -> None:
@@ -66,7 +96,9 @@ class MemoryExtractor:
                         provenance=f"extracted_turn:{session_id}",
                     )
                     extracted_facts.append(fact)
-                    logger.info("Distilled new semantic fact [%s = %s] for user %s", fact.key, val, user_id)
+                    logger.info(
+                        "Distilled new semantic fact [%s = %s] for user %s", fact.key, val, user_id
+                    )
 
         # 3. Record episodic summary
         episode_summary = f"User asked: '{scrub_query.cleaned_text[:100]}'. Assistant replied: '{scrub_resp.cleaned_text[:100]}'."

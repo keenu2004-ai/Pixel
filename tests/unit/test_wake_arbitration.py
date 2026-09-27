@@ -116,4 +116,3 @@ def test_audio_ownership_lifecycle() -> None:
     # Releasing correct owner clears it
     arbiter.release_audio_owner("sat-01")
     assert arbiter.get_active_audio_owner() is None
-

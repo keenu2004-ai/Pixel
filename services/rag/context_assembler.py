@@ -59,15 +59,17 @@ class ContextAssembler:
             context_parts.append(entry_block)
             current_len += len(entry_block)
 
-            citations.append({
-                "citation_id": citation_tag,
-                "source_uri": chunk.source_uri,
-                "symbol_name": chunk.symbol_name,
-                "start_line": chunk.start_line,
-                "end_line": chunk.end_line,
-                "score": item.score,
-                "chunk_hash": chunk.chunk_hash,
-            })
+            citations.append(
+                {
+                    "citation_id": citation_tag,
+                    "source_uri": chunk.source_uri,
+                    "symbol_name": chunk.symbol_name,
+                    "start_line": chunk.start_line,
+                    "end_line": chunk.end_line,
+                    "score": item.score,
+                    "chunk_hash": chunk.chunk_hash,
+                }
+            )
 
         context_parts.append("</retrieved_evidence>")
         formatted_context = "".join(context_parts)

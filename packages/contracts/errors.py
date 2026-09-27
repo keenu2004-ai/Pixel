@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 class ErrorCategory(StrEnum):
     """Classification of errors across PIXEL boundaries."""
+
     VALIDATION_ERROR = "VALIDATION_ERROR"
     AUTHENTICATION_ERROR = "AUTHENTICATION_ERROR"
     AUTHORIZATION_ERROR = "AUTHORIZATION_ERROR"
@@ -23,6 +24,7 @@ class ErrorCategory(StrEnum):
 
 class ErrorPayload(BaseModel):
     """Serializable error representation for IPC, WebSockets, and API responses."""
+
     category: ErrorCategory = Field(..., description="Error category classification")
     message: str = Field(..., description="Human-readable description of error")
     code: str = Field(..., description="Stable programmatic error code")
@@ -32,13 +34,14 @@ class ErrorPayload(BaseModel):
 
 class PixelException(Exception):
     """Base exception for all PIXEL domain errors."""
+
     def __init__(
         self,
         message: str,
         category: ErrorCategory = ErrorCategory.INTERNAL_ERROR,
         code: str = "PIXEL_INTERNAL_ERROR",
         details: dict[str, Any] | None = None,
-        retryable: bool = False
+        retryable: bool = False,
     ) -> None:
         super().__init__(message)
         self.payload = ErrorPayload(
@@ -46,77 +49,83 @@ class PixelException(Exception):
             message=message,
             code=code,
             details=details or {},
-            retryable=retryable
+            retryable=retryable,
         )
 
 
 class PolicyDenialException(PixelException):
     """Raised when an operation is blocked by the L6 Policy Engine."""
+
     def __init__(self, reason: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(
             message=f"Action denied by security policy: {reason}",
             category=ErrorCategory.POLICY_DENIAL,
             code="PIXEL_POLICY_DENIAL",
             details=details,
-            retryable=False
+            retryable=False,
         )
 
 
 class ToolExecutionException(PixelException):
     """Raised when a tool execution fails."""
+
     def __init__(self, tool_name: str, error: str, retryable: bool = False) -> None:
         super().__init__(
             message=f"Tool '{tool_name}' failed: {error}",
             category=ErrorCategory.TOOL_EXECUTION_ERROR,
             code="PIXEL_TOOL_FAILURE",
             details={"tool_name": tool_name, "raw_error": error},
-            retryable=retryable
+            retryable=retryable,
         )
 
 
 class ProviderTimeoutException(PixelException):
     """Raised when an external speech or model provider times out."""
+
     def __init__(self, provider_name: str, timeout_ms: int) -> None:
         super().__init__(
             message=f"Provider '{provider_name}' timed out after {timeout_ms}ms",
             category=ErrorCategory.PROVIDER_TIMEOUT,
             code="PIXEL_PROVIDER_TIMEOUT",
             details={"provider": provider_name, "timeout_ms": timeout_ms},
-            retryable=True
+            retryable=True,
         )
 
 
 class ProviderUnavailableException(PixelException):
     """Raised when a model or cloud provider service is unavailable or uninstalled."""
+
     def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(
             message=message,
             category=ErrorCategory.PROVIDER_ERROR,
             code="PIXEL_PROVIDER_UNAVAILABLE",
             details=details,
-            retryable=True
+            retryable=True,
         )
 
 
 class ModelException(PixelException):
     """Raised when local model inference or loading fails."""
+
     def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(
             message=message,
             category=ErrorCategory.PROVIDER_ERROR,
             code="PIXEL_MODEL_ERROR",
             details=details,
-            retryable=False
+            retryable=False,
         )
 
 
 class NetworkException(PixelException):
     """Raised when an external API or network request fails."""
+
     def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(
             message=message,
             category=ErrorCategory.PROVIDER_ERROR,
             code="PIXEL_NETWORK_ERROR",
             details=details,
-            retryable=True
+            retryable=True,
         )

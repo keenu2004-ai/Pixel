@@ -61,7 +61,9 @@ async def test_episodic_memory_embedding_and_search(store: SQLiteMemoryStore) ->
     )
 
     # Search for voice/whisper discussion
-    results = await store.search_episodic(query="whisper voice transcription", user_id="u1", limit=2)
+    results = await store.search_episodic(
+        query="whisper voice transcription", user_id="u1", limit=2
+    )
     assert len(results) >= 1
     assert "faster-whisper" in results[0]["summary"]
 

@@ -42,7 +42,7 @@ class DeterministicHashEmbeddingProvider(BaseEmbeddingProvider):
 
             # Bigram
             if i > 0:
-                bigram = f"{words[i-1]}_{word}"
+                bigram = f"{words[i - 1]}_{word}"
                 h2 = int(hashlib.sha256(bigram.encode("utf-8")).hexdigest(), 16) % self._dimension
                 sign2 = 1.0 if (h2 % 2 == 0) else -1.0
                 vec[h2] += sign2 * 2.5

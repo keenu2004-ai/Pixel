@@ -52,3 +52,22 @@
 - **Optimistic Concurrency Leases**: Task migration issues a cryptographic `concurrency_lease_token` and increments the canonical task version, preventing split-brain dual-node execution or conflicting mutations.
 - **Non-Bypassable L6 Policy Invariance**: Approvals (`ApprovalCard`) remain cryptographically bound to `task_id`, `tool_name`, and `confirmation_token`, preventing privilege escalation across devices.
 
+---
+
+## 4. Biometric Voice Privacy, Model Integrity & Local LLM Security
+
+### 4.1 Biometric Voice Privacy & Zero-Retention Storage
+- **Mandatory Consent Tokens**: Voice enrollment requires explicit user consent token verification (`CONSENT_GRANTED_FOR_PERSONAL_VOICE_CLONING_V1`). Attempts to enroll voices without consent tokens fail immediately.
+- **Zero Raw-Audio Retention**: Raw speech recordings submitted for enrollment are processed in volatile memory to extract mathematical embedding vectors and acoustic prosody parameters, then immediately destroyed.
+- **Redaction of Sensitive Biometric Telemetry**: Speaker embedding vectors and raw acoustic arrays are excluded from standard audit logs and telemetry traces.
+
+### 4.2 Model File Integrity & Supply-Chain Protection
+- **Cryptographic Checksum Verification**: Every model artifact (ONNX, GGUF, AWQ, Safetensors) requires SHA-256 integrity verification against trusted metadata manifests before being mapped to memory.
+- **Path Traversal Defense**: Model load paths are resolved to canonical absolute paths within authorized model directories, rejecting arbitrary filesystem traversal attempts (`../../system32`).
+
+### 4.3 Local LLM Security & Non-Bypassable Policy Gate
+- **Zero Direct Tool Execution**: Local models possess no direct execution authority. All generated tool calls must flow through the standard PIXEL `ToolRegistry` and `AgentPolicyGate`.
+- **Identical Risk Classification**: Tools invoked by local models receive identical risk-class evaluations (LOW, MEDIUM, HIGH, CRITICAL) and require explicit human-in-the-loop approval cards for high-risk actions.
+- **Policy-Enforced Remote Fallback**: The model router prohibits silent fallback to cloud models. Context is only transmitted remotely if explicitly authorized by user configuration (`allow_remote_fallback=True`).
+
+

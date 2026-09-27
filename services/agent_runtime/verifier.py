@@ -98,6 +98,7 @@ class ActionVerifier:
             if path.suffix == ".py":
                 try:
                     import ast
+
                     ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
                 except SyntaxError as syn_err:
                     return VerificationResult(
@@ -118,11 +119,23 @@ class ActionVerifier:
         # 5. Verification for run_isolated_tests
         if tool_name == "run_isolated_tests":
             output_dict = result.output if isinstance(result.output, dict) else {}
-            exit_code = output_dict.get("exit_code", 0) if output_dict else (result.evidence.get("exit_code", 0) if result.evidence else 0)
-            passed_count = output_dict.get("passed", 0) if output_dict else (result.evidence.get("passed", 0) if result.evidence else 0)
-            failed_count = output_dict.get("failed", 0) if output_dict else (result.evidence.get("failed", 0) if result.evidence else 0)
+            exit_code = (
+                output_dict.get("exit_code", 0)
+                if output_dict
+                else (result.evidence.get("exit_code", 0) if result.evidence else 0)
+            )
+            passed_count = (
+                output_dict.get("passed", 0)
+                if output_dict
+                else (result.evidence.get("passed", 0) if result.evidence else 0)
+            )
+            failed_count = (
+                output_dict.get("failed", 0)
+                if output_dict
+                else (result.evidence.get("failed", 0) if result.evidence else 0)
+            )
 
-            is_verified = (exit_code == 0 and failed_count == 0 and passed_count > 0)
+            is_verified = exit_code == 0 and failed_count == 0 and passed_count > 0
             return VerificationResult(
                 is_verified=is_verified,
                 tool_name=tool_name,

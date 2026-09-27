@@ -46,13 +46,17 @@ def test_alarm_english_and_hindi() -> None:
     ref_time = datetime(2026, 9, 27, 10, 0, 0)
 
     # English
-    p_en = DeterministicIntentParser.parse_intent("set an alarm for 7 am tomorrow", reference_time=ref_time)
+    p_en = DeterministicIntentParser.parse_intent(
+        "set an alarm for 7 am tomorrow", reference_time=ref_time
+    )
     assert p_en.target_intent == "ALARM"
     assert p_en.extracted_entities["action"] == AlarmAction.SET
     assert "07:00 AM" in p_en.extracted_entities["time_str"]
 
     # Hindi / Hinglish: "kal subah 7 baje alarm laga dena"
-    p_hi = DeterministicIntentParser.parse_intent("kal subah 7 baje alarm laga dena", reference_time=ref_time)
+    p_hi = DeterministicIntentParser.parse_intent(
+        "kal subah 7 baje alarm laga dena", reference_time=ref_time
+    )
     assert p_hi.target_intent == "ALARM"
     assert p_hi.extracted_entities["action"] == AlarmAction.SET
     assert "07:00 AM" in p_hi.extracted_entities["time_str"]
@@ -61,11 +65,15 @@ def test_alarm_english_and_hindi() -> None:
 def test_reminder_bilingual() -> None:
     ref_time = datetime(2026, 9, 27, 10, 0, 0)
 
-    p_en = DeterministicIntentParser.parse_intent("remind me to call mom in 30 minutes", reference_time=ref_time)
+    p_en = DeterministicIntentParser.parse_intent(
+        "remind me to call mom in 30 minutes", reference_time=ref_time
+    )
     assert p_en.target_intent == "REMINDER"
     assert p_en.extracted_entities["action"] == ReminderAction.SET
 
-    p_hi = DeterministicIntentParser.parse_intent("mujhe shaam 7 baje doodh lene ka reminder set karo", reference_time=ref_time)
+    p_hi = DeterministicIntentParser.parse_intent(
+        "mujhe shaam 7 baje doodh lene ka reminder set karo", reference_time=ref_time
+    )
     assert p_hi.target_intent == "REMINDER"
     assert p_hi.extracted_entities["action"] == ReminderAction.SET
 

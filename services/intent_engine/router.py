@@ -50,14 +50,20 @@ class DeterministicRouter:
                 name="set_timer",
                 description="Starts a countdown timer for a specified duration in seconds.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"duration_seconds": {"type": "integer"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"duration_seconds": {"type": "integer"}},
+                },
                 audit_level=AuditLevel.BASIC,
             ),
             ToolSpec(
                 name="cancel_timer",
                 description="Cancels an active timer.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"timer_id": {"type": "string"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"timer_id": {"type": "string"}},
+                },
                 audit_level=AuditLevel.BASIC,
             ),
             ToolSpec(
@@ -71,14 +77,20 @@ class DeterministicRouter:
                 name="set_alarm",
                 description="Schedules a system alarm for a specific timestamp.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"target_time": {"type": "string"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"target_time": {"type": "string"}},
+                },
                 audit_level=AuditLevel.BASIC,
             ),
             ToolSpec(
                 name="cancel_alarm",
                 description="Cancels a scheduled alarm.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"alarm_id": {"type": "string"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"alarm_id": {"type": "string"}},
+                },
                 audit_level=AuditLevel.BASIC,
             ),
             ToolSpec(
@@ -106,7 +118,10 @@ class DeterministicRouter:
                 name="cancel_reminder",
                 description="Cancels an existing reminder.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"reminder_id": {"type": "string"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"reminder_id": {"type": "string"}},
+                },
                 audit_level=AuditLevel.BASIC,
             ),
             ToolSpec(
@@ -141,14 +156,20 @@ class DeterministicRouter:
                 name="launch_app",
                 description="Launches an approved application.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"app_name": {"type": "string"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"app_name": {"type": "string"}},
+                },
                 audit_level=AuditLevel.DETAILED,
             ),
             ToolSpec(
                 name="close_app",
                 description="Closes an open application.",
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                parameters_schema={"type": "object", "properties": {"app_name": {"type": "string"}}},
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"app_name": {"type": "string"}},
+                },
                 audit_level=AuditLevel.DETAILED,
             ),
             ToolSpec(
@@ -169,7 +190,9 @@ class DeterministicRouter:
         for t in tools:
             self._tools[t.name] = t
 
-    def _compute_idempotency_key(self, tool_name: str, arguments: dict[str, Any], session_id: str | None) -> str:
+    def _compute_idempotency_key(
+        self, tool_name: str, arguments: dict[str, Any], session_id: str | None
+    ) -> str:
         """Computes a deterministic hash for idempotency deduplication."""
         raw_key = f"{session_id}:{tool_name}:{json.dumps(arguments, sort_keys=True, default=str)}"
         return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
@@ -200,7 +223,10 @@ class DeterministicRouter:
         if tool_spec.risk_class != RiskClass.READ:
             idem_key = self._compute_idempotency_key(tool_name, arguments, session_id)
             if idem_key in self._idempotency_cache:
-                logger.info("Idempotent request duplicate detected for key %s. Returning cached result.", idem_key)
+                logger.info(
+                    "Idempotent request duplicate detected for key %s. Returning cached result.",
+                    idem_key,
+                )
                 return self._idempotency_cache[idem_key]
 
         # 2. L6 Policy Engine Security Check
@@ -211,7 +237,9 @@ class DeterministicRouter:
         )
 
         if decision.verdict == PolicyVerdict.DENY:
-            logger.warning("Policy Engine denied execution for tool '%s': %s", tool_name, decision.reason)
+            logger.warning(
+                "Policy Engine denied execution for tool '%s': %s", tool_name, decision.reason
+            )
             return ToolExecutionResult(
                 success=False,
                 output=None,
@@ -222,7 +250,11 @@ class DeterministicRouter:
         if decision.verdict == PolicyVerdict.REQUIRE_USER_CONFIRMATION:
             return ToolExecutionResult(
                 success=False,
-                output={"status": "CONFIRMATION_REQUIRED", "tool": tool_name, "arguments": arguments},
+                output={
+                    "status": "CONFIRMATION_REQUIRED",
+                    "tool": tool_name,
+                    "arguments": arguments,
+                },
                 error=f"User confirmation required: {decision.reason}",
                 duration_ms=int((time.perf_counter() - t0) * 1000),
             )
@@ -354,13 +386,17 @@ class DeterministicRouter:
     async def _dispatch_to_adapter(self, tool_name: str, args: dict[str, Any]) -> Any:
         """Invokes the specific OS adapter method."""
         if tool_name == "set_timer":
-            return await self.os_adapter.set_timer(args["duration_seconds"], args.get("label", "Timer"))
+            return await self.os_adapter.set_timer(
+                args["duration_seconds"], args.get("label", "Timer")
+            )
         elif tool_name == "cancel_timer":
             return await self.os_adapter.cancel_timer(args.get("timer_id"))
         elif tool_name == "get_timer_status":
             return await self.os_adapter.get_timer_status(args.get("timer_id"))
         elif tool_name == "set_alarm":
-            return await self.os_adapter.set_alarm(args["target_time"], args.get("label", "Alarm"), args.get("repeat"))
+            return await self.os_adapter.set_alarm(
+                args["target_time"], args.get("label", "Alarm"), args.get("repeat")
+            )
         elif tool_name == "cancel_alarm":
             return await self.os_adapter.cancel_alarm(args.get("alarm_id"))
         elif tool_name == "list_alarms":

@@ -13,14 +13,13 @@ from services.voice_gateway.audio.stream_buffer import (
 )
 
 
-def _create_frame(sample_rate: int = 16000, channels: int = 1, num_samples: int = 512) -> AudioFrame:
+def _create_frame(
+    sample_rate: int = 16000, channels: int = 1, num_samples: int = 512
+) -> AudioFrame:
     # 512 16-bit samples = 1024 bytes (32ms frame @ 16kHz)
     pcm_data = b"\x00\x01" * num_samples
     return AudioFrame(
-        sample_rate=sample_rate,
-        channels=channels,
-        pcm_data=pcm_data,
-        timestamp_ms=1000
+        sample_rate=sample_rate, channels=channels, pcm_data=pcm_data, timestamp_ms=1000
     )
 
 
@@ -63,7 +62,9 @@ async def test_format_validation_rejections() -> None:
 
     # Odd byte count (not 16-bit aligned)
     with pytest.raises(AudioFormatError, match="not aligned"):
-        await buffer.push(AudioFrame(sample_rate=16000, channels=1, pcm_data=b"\x01\x02\x03", timestamp_ms=0))
+        await buffer.push(
+            AudioFrame(sample_rate=16000, channels=1, pcm_data=b"\x01\x02\x03", timestamp_ms=0)
+        )
 
 
 @pytest.mark.asyncio

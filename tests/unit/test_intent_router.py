@@ -1,6 +1,5 @@
 """Unit tests for Deterministic Capability Router and Policy Enforcement."""
 
-
 import pytest
 
 from packages.contracts.deterministic import TimerAction

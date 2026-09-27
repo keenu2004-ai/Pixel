@@ -59,6 +59,7 @@ class WindowsOSAdapter(BaseOSAdapter):
         try:
             if path.exists():
                 from typing import cast
+
                 return cast(list[dict[str, Any]], json.loads(path.read_text(encoding="utf-8")))
             return []
         except Exception as err:

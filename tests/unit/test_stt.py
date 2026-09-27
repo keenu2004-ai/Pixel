@@ -109,19 +109,23 @@ class TestHybridSTT:
     @pytest.mark.asyncio
     async def test_fallback_on_primary_failure(self) -> None:
         from unittest.mock import AsyncMock
+
         primary = LocalWhisperSTT()
         # force primary to fail
         primary.transcribe_once = AsyncMock(side_effect=RuntimeError("Local STT crash"))  # type: ignore
 
         from packages.contracts.events import TranscriptEvent
+
         fallback = MagicMock()
-        fallback.transcribe_once = AsyncMock(return_value=TranscriptEvent(
-            session_id="s1",
-            text="Fallback transcript text",
-            is_final=True,
-            language="en",
-            provider="cloud_stt",
-        ))
+        fallback.transcribe_once = AsyncMock(
+            return_value=TranscriptEvent(
+                session_id="s1",
+                text="Fallback transcript text",
+                is_final=True,
+                language="en",
+                provider="cloud_stt",
+            )
+        )
 
         hybrid = HybridSTTProvider(primary_provider=primary, fallback_provider=fallback)
         result = await hybrid.transcribe_once(b"\x00\x00" * 1600)

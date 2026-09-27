@@ -37,7 +37,9 @@ async def test_wake_word_trigger_in_idle(
         return_value=WakeEvent(session_id="s1", phrase="Hey Pixel", confidence=0.95)
     )
 
-    pipeline = VoicePipeline(vad_provider=vad, wake_provider=wake, stt_provider=stt, tts_provider=tts)
+    pipeline = VoicePipeline(
+        vad_provider=vad, wake_provider=wake, stt_provider=stt, tts_provider=tts
+    )
     session = VoiceSession(session_id="s1")
 
     frame = AudioFrame(sample_rate=16000, channels=1, pcm_data=b"\x00" * 3200, timestamp_ms=0)
@@ -76,7 +78,9 @@ async def test_speech_end_transcribes_and_speaks(
 
     tts.synthesize_stream = _mock_tts_stream
 
-    pipeline = VoicePipeline(vad_provider=vad, wake_provider=wake, stt_provider=stt, tts_provider=tts)
+    pipeline = VoicePipeline(
+        vad_provider=vad, wake_provider=wake, stt_provider=stt, tts_provider=tts
+    )
     session = VoiceSession(session_id="s1")
     session.transition_to(VoiceState.LISTENING)
 
@@ -105,7 +109,9 @@ async def test_barge_in_interruption_during_speaking(
         return_value=VADEvent(session_id="s1", state=VADState.SPEECH_START, speech_probability=0.99)
     )
 
-    pipeline = VoicePipeline(vad_provider=vad, wake_provider=wake, stt_provider=stt, tts_provider=tts)
+    pipeline = VoicePipeline(
+        vad_provider=vad, wake_provider=wake, stt_provider=stt, tts_provider=tts
+    )
     session = VoiceSession(session_id="s1")
     session.transition_to(VoiceState.SPEAKING)
 

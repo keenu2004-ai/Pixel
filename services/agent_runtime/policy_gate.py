@@ -66,7 +66,10 @@ class AgentPolicyGate:
         )
 
         if not hmac.compare_digest(token, expected_token):
-            return False, "Approval token is invalid, expired, or does not match the requested action/arguments (Replay/Tamper Defense)."
+            return (
+                False,
+                "Approval token is invalid, expired, or does not match the requested action/arguments (Replay/Tamper Defense).",
+            )
         return True, None
 
     def evaluate(
@@ -94,7 +97,9 @@ class AgentPolicyGate:
             if is_valid:
                 valid_user_confirmation = True
             else:
-                logger.warning("Invalid confirmation token presented for tool '%s': %s", tool_spec.name, err)
+                logger.warning(
+                    "Invalid confirmation token presented for tool '%s': %s", tool_spec.name, err
+                )
                 return PolicyDecision(
                     verdict=PolicyVerdict.DENY,
                     risk_class=tool_spec.risk_class,

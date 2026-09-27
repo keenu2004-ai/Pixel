@@ -30,7 +30,9 @@ def test_resolve_english_evening() -> None:
 def test_resolve_parso_night() -> None:
     ref_time = datetime(2026, 9, 27, 12, 0, 0)
     # "parso raat 9 baje" -> 2026-09-29 21:00:00
-    res = TemporalResolver.resolve_datetime("Parso raat 9 baje dinner ka reminder daal do", ref_time)
+    res = TemporalResolver.resolve_datetime(
+        "Parso raat 9 baje dinner ka reminder daal do", ref_time
+    )
     assert res is not None
     assert res.day == 29
     assert res.hour == 21

@@ -71,18 +71,32 @@ class DeterministicIntentEngine:
         t = transcript_text.lower().strip()
         is_hindi = any(w in t for w in ["namaste", "kaise", "kya", "batao", "kaun"])
         if "hello" in t or "hey" in t or "namaste" in t:
-            reply = "Namaste! Main Pixel hoon. Aapki kya madad kar sakta hoon?" if is_hindi else "Hello! I am PIXEL. How can I assist you today?"
+            reply = (
+                "Namaste! Main Pixel hoon. Aapki kya madad kar sakta hoon?"
+                if is_hindi
+                else "Hello! I am PIXEL. How can I assist you today?"
+            )
         else:
             # Query memory context for conversational QA
             if self.memory_manager:
-                mem_ctx = await self.memory_manager.query_context(query=transcript_text, session_id=session_id, user_id=user_id)
+                mem_ctx = await self.memory_manager.query_context(
+                    query=transcript_text, session_id=session_id, user_id=user_id
+                )
                 facts = mem_ctx.get("facts", [])
                 if facts:
                     fact_snippets = [f"{f.get('key')}: {f.get('value')}" for f in facts[:2]]
                     reply = f"Based on your preferences ({', '.join(fact_snippets)}), I am processing your request."
                 else:
-                    reply = f"Maine suna: '{transcript_text}'." if is_hindi else f"I heard: '{transcript_text}'."
+                    reply = (
+                        f"Maine suna: '{transcript_text}'."
+                        if is_hindi
+                        else f"I heard: '{transcript_text}'."
+                    )
             else:
-                reply = f"Maine suna: '{transcript_text}'." if is_hindi else f"I heard: '{transcript_text}'."
+                reply = (
+                    f"Maine suna: '{transcript_text}'."
+                    if is_hindi
+                    else f"I heard: '{transcript_text}'."
+                )
 
         return reply, packet, None

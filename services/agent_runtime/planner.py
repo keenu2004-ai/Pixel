@@ -36,9 +36,9 @@ class AgentPlanner:
         steps: list[PlanStep] = []
 
         # 1. Multi-step Research & Save Pattern (e.g., "Find information about X, and save to notes.txt")
-        if ("search" in q_lower or "find" in q_lower or "read" in q_lower or "check" in q_lower) and (
-            "save" in q_lower or "write" in q_lower or "create file" in q_lower
-        ):
+        if (
+            "search" in q_lower or "find" in q_lower or "read" in q_lower or "check" in q_lower
+        ) and ("save" in q_lower or "write" in q_lower or "create file" in q_lower):
             if "search_knowledge" in tool_names and "write_file" in tool_names:
                 steps.append(
                     PlanStep(
@@ -66,7 +66,9 @@ class AgentPlanner:
                 )
 
         # 2. Direct File Read Pattern
-        elif ("read" in q_lower or "show" in q_lower or "open" in q_lower) and ("file" in q_lower or ".txt" in q_lower or ".md" in q_lower or ".py" in q_lower):
+        elif ("read" in q_lower or "show" in q_lower or "open" in q_lower) and (
+            "file" in q_lower or ".txt" in q_lower or ".md" in q_lower or ".py" in q_lower
+        ):
             if "read_file" in tool_names:
                 # Extract file path token
                 words = user_query.split()
@@ -98,7 +100,10 @@ class AgentPlanner:
                         step_id=1,
                         description=f"Write content to '{file_candidate}'",
                         tool_name="write_file",
-                        arguments={"path": file_candidate, "content": f"Generated for: {user_query}"},
+                        arguments={
+                            "path": file_candidate,
+                            "content": f"Generated for: {user_query}",
+                        },
                     )
                 )
 
@@ -184,11 +189,19 @@ class AgentPlanner:
             # Transient failure retry check
             if state.retry_count < state.max_retries:
                 state.retry_count += 1
-                logger.info("Retrying step %d (attempt %d/%d)", current_step.step_id, state.retry_count, state.max_retries)
+                logger.info(
+                    "Retrying step %d (attempt %d/%d)",
+                    current_step.step_id,
+                    state.retry_count,
+                    state.max_retries,
+                )
                 current_step.status = StepStatus.IN_PROGRESS
                 return AgentExecutionStatus.EXECUTING, f"Retrying step {current_step.step_id}"
 
-            return AgentExecutionStatus.FAILED, f"Step {current_step.step_id} failed: {state.last_tool_result.error}"
+            return (
+                AgentExecutionStatus.FAILED,
+                f"Step {current_step.step_id} failed: {state.last_tool_result.error}",
+            )
 
         # If last execution succeeded and verified
         if state.last_tool_result and state.last_tool_result.success:
@@ -196,11 +209,17 @@ class AgentPlanner:
             current_step.result = state.last_tool_result.output
 
             # If this was a search step feeding into a write step, propagate evidence
-            if current_step.tool_name == "search_knowledge" and current_idx + 1 < len(state.plan.steps):
+            if current_step.tool_name == "search_knowledge" and current_idx + 1 < len(
+                state.plan.steps
+            ):
                 next_step = state.plan.steps[current_idx + 1]
                 if next_step.tool_name == "write_file":
                     # Update content argument with the retrieved knowledge
-                    retrieved_text = str(current_step.result.get("formatted_context", "")) if isinstance(current_step.result, dict) else str(current_step.result)
+                    retrieved_text = (
+                        str(current_step.result.get("formatted_context", ""))
+                        if isinstance(current_step.result, dict)
+                        else str(current_step.result)
+                    )
                     next_step.arguments["content"] = retrieved_text
 
             # Advance to next step
@@ -209,6 +228,9 @@ class AgentPlanner:
                 state.plan.is_complete = True
                 return AgentExecutionStatus.SUCCESS, "All planned steps completed."
 
-            return AgentExecutionStatus.PLANNING, f"Proceeding to step {state.plan.current_step_index + 1}"
+            return (
+                AgentExecutionStatus.PLANNING,
+                f"Proceeding to step {state.plan.current_step_index + 1}",
+            )
 
         return AgentExecutionStatus.EXECUTING, None

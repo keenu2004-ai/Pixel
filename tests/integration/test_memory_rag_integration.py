@@ -25,7 +25,9 @@ def test_env() -> tuple[DeterministicIntentParser, MemoryManager, RAGRetriever]:
 
 
 @pytest.mark.asyncio
-async def test_fast_path_bypasses_rag_overhead(test_env: tuple[DeterministicIntentParser, MemoryManager, RAGRetriever]) -> None:
+async def test_fast_path_bypasses_rag_overhead(
+    test_env: tuple[DeterministicIntentParser, MemoryManager, RAGRetriever],
+) -> None:
     parser, mem_mgr, rag_ret = test_env
 
     # 1. Deterministic command
@@ -47,7 +49,9 @@ async def test_fast_path_bypasses_rag_overhead(test_env: tuple[DeterministicInte
 
 
 @pytest.mark.asyncio
-async def test_conversational_rag_and_memory_enrichment(test_env: tuple[DeterministicIntentParser, MemoryManager, RAGRetriever]) -> None:
+async def test_conversational_rag_and_memory_enrichment(
+    test_env: tuple[DeterministicIntentParser, MemoryManager, RAGRetriever],
+) -> None:
     parser, mem_mgr, rag_ret = test_env
 
     # 1. Pre-index technical documentation in RAG
@@ -63,10 +67,15 @@ Speech frames are batched for Faster-Whisper transcription.
     # 3. Conversational query
     user_query = "What mic am I using and how does the audio pipeline work?"
     packet = parser.parse_intent(user_query)
-    assert packet.routing_type in (IntentRoutingType.CONVERSATIONAL_QA, IntentRoutingType.LANGGRAPH_AGENT)
+    assert packet.routing_type in (
+        IntentRoutingType.CONVERSATIONAL_QA,
+        IntentRoutingType.LANGGRAPH_AGENT,
+    )
 
     # 4. Assemble context from both Memory and RAG
-    mem_ctx = await mem_mgr.query_context(query=user_query, session_id="sess_int_2", user_id="user_1")
+    mem_ctx = await mem_mgr.query_context(
+        query=user_query, session_id="sess_int_2", user_id="user_1"
+    )
     rag_ctx = await rag_ret.retrieve_and_assemble(query=user_query, max_tokens=500)
 
     # Validate memory enrichment

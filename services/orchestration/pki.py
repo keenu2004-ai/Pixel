@@ -45,7 +45,9 @@ class PKIEngine:
             "not_after": (datetime.now(UTC) + timedelta(days=3650)).isoformat(),
             "key_id": hashlib.sha256(self._root_key).hexdigest()[:16],
         }
-        sig = hmac.new(self._root_key, json.dumps(payload, sort_keys=True).encode(), hashlib.sha256).hexdigest()
+        sig = hmac.new(
+            self._root_key, json.dumps(payload, sort_keys=True).encode(), hashlib.sha256
+        ).hexdigest()
         cert_data = {"payload": payload, "signature": sig}
         encoded = base64.b64encode(json.dumps(cert_data).encode()).decode()
         return f"-----BEGIN PIXEL ROOT CA CERTIFICATE-----\n{encoded}\n-----END PIXEL ROOT CA CERTIFICATE-----"
@@ -78,7 +80,9 @@ class PKIEngine:
             "not_before": now.isoformat(),
             "not_after": (now + timedelta(days=validity_days)).isoformat(),
         }
-        sig = hmac.new(self._root_key, json.dumps(payload, sort_keys=True).encode(), hashlib.sha256).hexdigest()
+        sig = hmac.new(
+            self._root_key, json.dumps(payload, sort_keys=True).encode(), hashlib.sha256
+        ).hexdigest()
         cert_envelope = {"payload": payload, "signature": sig}
         encoded = base64.b64encode(json.dumps(cert_envelope).encode()).decode()
         return f"-----BEGIN PIXEL CERTIFICATE-----\n{encoded}\n-----END PIXEL CERTIFICATE-----"
@@ -185,7 +189,10 @@ class PKIEngine:
             )
 
         # Verify device ID binding
-        if challenge.device_id != confirmation.device_id or challenge.device_id != request.device_id:
+        if (
+            challenge.device_id != confirmation.device_id
+            or challenge.device_id != request.device_id
+        ):
             return PairingResponse(
                 success=False,
                 device_id=confirmation.device_id,
@@ -225,7 +232,9 @@ class PKIEngine:
             error_message=None,
         )
 
-    def revoke_certificate(self, serial: str, device_id: str, reason: str = "Admin revocation") -> bool:
+    def revoke_certificate(
+        self, serial: str, device_id: str, reason: str = "Admin revocation"
+    ) -> bool:
         """Revoke a certificate by serial number or device ID."""
         self._revocation_ledger[serial] = {
             "device_id": device_id,

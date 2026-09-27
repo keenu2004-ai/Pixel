@@ -60,20 +60,74 @@ class MockAndroidDeviceRuntime:
     def transition_to(self, new_state: MobileAssistantState, reason: str = "") -> bool:
         """Enforces valid state machine transitions."""
         valid_transitions: dict[MobileAssistantState, list[MobileAssistantState]] = {
-            MobileAssistantState.UNINITIALIZED: [MobileAssistantState.INITIALIZING, MobileAssistantState.ERROR],
-            MobileAssistantState.INITIALIZING: [MobileAssistantState.PERMISSION_REQUIRED, MobileAssistantState.READY, MobileAssistantState.ERROR],
-            MobileAssistantState.PERMISSION_REQUIRED: [MobileAssistantState.READY, MobileAssistantState.STOPPED],
-            MobileAssistantState.READY: [MobileAssistantState.LISTENING, MobileAssistantState.WAKE_DETECTED, MobileAssistantState.DISCONNECTED, MobileAssistantState.STOPPED],
-            MobileAssistantState.LISTENING: [MobileAssistantState.WAKE_DETECTED, MobileAssistantState.READY, MobileAssistantState.DISCONNECTED, MobileAssistantState.STOPPED],
-            MobileAssistantState.WAKE_DETECTED: [MobileAssistantState.PROCESSING, MobileAssistantState.LISTENING, MobileAssistantState.ERROR],
-            MobileAssistantState.PROCESSING: [MobileAssistantState.SPEAKING, MobileAssistantState.AWAITING_APPROVAL, MobileAssistantState.READY, MobileAssistantState.ERROR],
-            MobileAssistantState.SPEAKING: [MobileAssistantState.INTERRUPTED, MobileAssistantState.READY, MobileAssistantState.ERROR],
-            MobileAssistantState.INTERRUPTED: [MobileAssistantState.LISTENING, MobileAssistantState.READY],
-            MobileAssistantState.AWAITING_APPROVAL: [MobileAssistantState.PROCESSING, MobileAssistantState.READY, MobileAssistantState.ERROR],
-            MobileAssistantState.DISCONNECTED: [MobileAssistantState.RECONNECTING, MobileAssistantState.READY, MobileAssistantState.STOPPED],
-            MobileAssistantState.RECONNECTING: [MobileAssistantState.READY, MobileAssistantState.DISCONNECTED, MobileAssistantState.ERROR],
-            MobileAssistantState.ERROR: [MobileAssistantState.INITIALIZING, MobileAssistantState.STOPPED],
-            MobileAssistantState.STOPPED: [MobileAssistantState.INITIALIZING, MobileAssistantState.UNINITIALIZED],
+            MobileAssistantState.UNINITIALIZED: [
+                MobileAssistantState.INITIALIZING,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.INITIALIZING: [
+                MobileAssistantState.PERMISSION_REQUIRED,
+                MobileAssistantState.READY,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.PERMISSION_REQUIRED: [
+                MobileAssistantState.READY,
+                MobileAssistantState.STOPPED,
+            ],
+            MobileAssistantState.READY: [
+                MobileAssistantState.LISTENING,
+                MobileAssistantState.WAKE_DETECTED,
+                MobileAssistantState.DISCONNECTED,
+                MobileAssistantState.STOPPED,
+            ],
+            MobileAssistantState.LISTENING: [
+                MobileAssistantState.WAKE_DETECTED,
+                MobileAssistantState.READY,
+                MobileAssistantState.DISCONNECTED,
+                MobileAssistantState.STOPPED,
+            ],
+            MobileAssistantState.WAKE_DETECTED: [
+                MobileAssistantState.PROCESSING,
+                MobileAssistantState.LISTENING,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.PROCESSING: [
+                MobileAssistantState.SPEAKING,
+                MobileAssistantState.AWAITING_APPROVAL,
+                MobileAssistantState.READY,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.SPEAKING: [
+                MobileAssistantState.INTERRUPTED,
+                MobileAssistantState.READY,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.INTERRUPTED: [
+                MobileAssistantState.LISTENING,
+                MobileAssistantState.READY,
+            ],
+            MobileAssistantState.AWAITING_APPROVAL: [
+                MobileAssistantState.PROCESSING,
+                MobileAssistantState.READY,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.DISCONNECTED: [
+                MobileAssistantState.RECONNECTING,
+                MobileAssistantState.READY,
+                MobileAssistantState.STOPPED,
+            ],
+            MobileAssistantState.RECONNECTING: [
+                MobileAssistantState.READY,
+                MobileAssistantState.DISCONNECTED,
+                MobileAssistantState.ERROR,
+            ],
+            MobileAssistantState.ERROR: [
+                MobileAssistantState.INITIALIZING,
+                MobileAssistantState.STOPPED,
+            ],
+            MobileAssistantState.STOPPED: [
+                MobileAssistantState.INITIALIZING,
+                MobileAssistantState.UNINITIALIZED,
+            ],
         }
 
         allowed = valid_transitions.get(self.state, [])
@@ -102,7 +156,9 @@ class MockAndroidDeviceRuntime:
         """Simulates runtime RECORD_AUDIO permission request."""
         self.has_mic_permission = grant
         if not grant:
-            self.transition_to(MobileAssistantState.PERMISSION_REQUIRED, "Microphone permission denied")
+            self.transition_to(
+                MobileAssistantState.PERMISSION_REQUIRED, "Microphone permission denied"
+            )
         elif self.state == MobileAssistantState.PERMISSION_REQUIRED:
             self.transition_to(MobileAssistantState.READY, "Microphone permission granted")
         return grant
@@ -149,7 +205,9 @@ class MockAndroidDeviceRuntime:
             self.active_session_id = res.session_id
             self.transition_to(MobileAssistantState.READY, "Registration successful")
         else:
-            self.transition_to(MobileAssistantState.ERROR, res.error_message or "Registration failed")
+            self.transition_to(
+                MobileAssistantState.ERROR, res.error_message or "Registration failed"
+            )
         return res
 
     async def trigger_wake_phrase(self, phrase: str = "hey pixel") -> bool:
@@ -192,7 +250,9 @@ class MockAndroidDeviceRuntime:
             event_type="barge_in",
         )
         res = await self.adapter.handle_voice_packet(packet)
-        self.transition_to(MobileAssistantState.LISTENING, "Transitioning to listening after interrupt")
+        self.transition_to(
+            MobileAssistantState.LISTENING, "Transitioning to listening after interrupt"
+        )
         return res
 
     def authorize_approval_card(

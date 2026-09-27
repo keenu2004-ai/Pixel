@@ -16,7 +16,7 @@ from services.voice_gateway.vad.silero_vad import (
 
 def _create_pcm_frame(num_samples: int = 512) -> AudioFrame:
     # 512 16-bit samples = 1024 bytes (32ms frame @ 16kHz)
-    pcm_bytes = (b"\x00\x00" * num_samples)
+    pcm_bytes = b"\x00\x00" * num_samples
     return AudioFrame(sample_rate=16000, channels=1, pcm_data=pcm_bytes, timestamp_ms=1000)
 
 
@@ -41,7 +41,7 @@ def test_checksum_mismatch_raises_integrity_error(tmp_path: os.PathLike[str]) ->
 
     config = SileroVADConfig(
         model_path=model_file,
-        expected_sha256="0000000000000000000000000000000000000000000000000000000000000000"
+        expected_sha256="0000000000000000000000000000000000000000000000000000000000000000",
     )
     provider = SileroVADProvider(config)
     with pytest.raises(SileroModelIntegrityError, match="SHA-256 mismatch"):
@@ -51,9 +51,7 @@ def test_checksum_mismatch_raises_integrity_error(tmp_path: os.PathLike[str]) ->
 @pytest.mark.asyncio
 async def test_mocked_vad_speech_state_transitions() -> None:
     config = SileroVADConfig(
-        model_path="fake_model.onnx",
-        min_speech_duration_ms=64,
-        min_silence_duration_ms=64
+        model_path="fake_model.onnx", min_speech_duration_ms=64, min_silence_duration_ms=64
     )
     provider = SileroVADProvider(config)
 
@@ -101,7 +99,10 @@ async def test_session_reset_and_shutdown() -> None:
     config = SileroVADConfig(model_path="fake_model.onnx")
     provider = SileroVADProvider(config)
     mock_session = MagicMock()
-    mock_session.run.return_value = [np.array([[[0.95]]], dtype=np.float32), np.zeros((2, 1, 128), dtype=np.float32)]
+    mock_session.run.return_value = [
+        np.array([[[0.95]]], dtype=np.float32),
+        np.zeros((2, 1, 128), dtype=np.float32),
+    ]
     provider._session = mock_session
     provider._initialized = True
 

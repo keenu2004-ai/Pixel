@@ -51,6 +51,19 @@ from packages.contracts.mobile import (
     MobileRegistrationResponse,
     MobileVoicePacket,
 )
+from packages.contracts.models import (
+    LocalLLMRequest,
+    LocalLLMResponse,
+    ModelFamily,
+    ModelLifecycleState,
+    ModelMetadata,
+    QuantizationType,
+    SpeakerEnrollmentRequest,
+    SpeakerProfile,
+    SpeakerVerificationResult,
+    VoiceSynthesisRequest,
+    VoiceSynthesisResult,
+)
 from packages.contracts.orchestration import (
     ContextHandoffPayload,
     DeviceCapability,
@@ -149,5 +162,15 @@ __all__ = [
     "WakeArbitrationResult",
     "ContextHandoffPayload",
     "TaskHandoffPayload",
+    "ModelLifecycleState",
+    "QuantizationType",
+    "ModelFamily",
+    "ModelMetadata",
+    "SpeakerEnrollmentRequest",
+    "SpeakerProfile",
+    "SpeakerVerificationResult",
+    "VoiceSynthesisRequest",
+    "VoiceSynthesisResult",
+    "LocalLLMRequest",
+    "LocalLLMResponse",
 ]
-

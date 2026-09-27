@@ -23,11 +23,22 @@ def _setup_environment() -> tuple[DeviceRegistry, PresenceManager, HandoffManage
         device_id="pc-01",
         device_name="Primary Desktop",
         device_role=DeviceRole.PRIMARY_PC,
-        capabilities=[DeviceCapability.DESKTOP_CONTROL, DeviceCapability.CODE_EXECUTION, DeviceCapability.MICROPHONE],
+        capabilities=[
+            DeviceCapability.DESKTOP_CONTROL,
+            DeviceCapability.CODE_EXECUTION,
+            DeviceCapability.MICROPHONE,
+        ],
         public_key_pem="pem-pc",
     )
     chal_pc = registry.initiate_pairing(pc_req)
-    registry.complete_pairing(PairingConfirmation(challenge_id=chal_pc.challenge_id, device_id="pc-01", pin_code=chal_pc.pin_code, user_confirmed=True))
+    registry.complete_pairing(
+        PairingConfirmation(
+            challenge_id=chal_pc.challenge_id,
+            device_id="pc-01",
+            pin_code=chal_pc.pin_code,
+            user_confirmed=True,
+        )
+    )
     presence.update_heartbeat("pc-01")
 
     # Register Phone
@@ -35,11 +46,22 @@ def _setup_environment() -> tuple[DeviceRegistry, PresenceManager, HandoffManage
         device_id="phone-01",
         device_name="Pixel Mobile",
         device_role=DeviceRole.MOBILE_NODE,
-        capabilities=[DeviceCapability.ANDROID_CONTROL, DeviceCapability.MICROPHONE, DeviceCapability.BATTERY],
+        capabilities=[
+            DeviceCapability.ANDROID_CONTROL,
+            DeviceCapability.MICROPHONE,
+            DeviceCapability.BATTERY,
+        ],
         public_key_pem="pem-phone",
     )
     chal_phone = registry.initiate_pairing(phone_req)
-    registry.complete_pairing(PairingConfirmation(challenge_id=chal_phone.challenge_id, device_id="phone-01", pin_code=chal_phone.pin_code, user_confirmed=True))
+    registry.complete_pairing(
+        PairingConfirmation(
+            challenge_id=chal_phone.challenge_id,
+            device_id="phone-01",
+            pin_code=chal_phone.pin_code,
+            user_confirmed=True,
+        )
+    )
     presence.update_heartbeat("phone-01")
 
     handoff = HandoffManager(registry=registry, presence=presence)
@@ -139,4 +161,3 @@ def test_task_handoff_offline_target_fails() -> None:
             current_version=1,
             plan_steps=[],
         )
-

@@ -56,10 +56,14 @@ class MobileGatewayAdapter:
         """Retrieves a VoiceSession if active."""
         return self.sessions.get(session_id)
 
-    async def register_device(self, request: MobileRegistrationRequest) -> MobileRegistrationResponse:
+    async def register_device(
+        self, request: MobileRegistrationRequest
+    ) -> MobileRegistrationResponse:
         """Handles client handshake, validates auth, and binds session."""
         if not self.authenticate_token(request.auth_token):
-            logger.warning("Mobile registration rejected: Invalid token for device %s", request.device_id)
+            logger.warning(
+                "Mobile registration rejected: Invalid token for device %s", request.device_id
+            )
             return MobileRegistrationResponse(
                 success=False,
                 error_message="Authentication failed: Invalid authorization token.",
@@ -72,7 +76,11 @@ class MobileGatewayAdapter:
         session_id = f"mobile_{request.device_id[:8]}_{uuid4().hex[:6]}"
         session = await self.get_or_create_session(session_id)
         self.device_sessions[request.device_id] = session.session_id
-        logger.info("Registered Android device %s bound to session %s", request.device_id, session.session_id)
+        logger.info(
+            "Registered Android device %s bound to session %s",
+            request.device_id,
+            session.session_id,
+        )
 
         return MobileRegistrationResponse(
             success=True,
@@ -97,6 +105,7 @@ class MobileGatewayAdapter:
             import base64
 
             from packages.contracts.events import AudioFrame
+
             pcm_bytes = base64.b64decode(packet.pcm_base64)
             # Write to session audio buffer
             frame = AudioFrame(
@@ -132,7 +141,9 @@ class MobileGatewayAdapter:
         self.pending_mobile_approvals[approval_id] = card
         return card
 
-    def process_approval_response(self, response: MobileApprovalResponse) -> tuple[bool, str | None]:
+    def process_approval_response(
+        self, response: MobileApprovalResponse
+    ) -> tuple[bool, str | None]:
         """Validates and consumes user biometric / touch approval from Android."""
         card = self.pending_mobile_approvals.get(response.approval_id)
         if not card:

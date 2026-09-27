@@ -63,7 +63,12 @@ class LocalWhisperSTT(BaseSTTProvider):
         """Checks if faster-whisper dependency is available and model path exists if local."""
         try:
             import faster_whisper  # noqa: F401
-            if self.model_size_or_path.endswith((".bin", ".pt", ".onnx")) or "/" in self.model_size_or_path or "\\" in self.model_size_or_path:
+
+            if (
+                self.model_size_or_path.endswith((".bin", ".pt", ".onnx"))
+                or "/" in self.model_size_or_path
+                or "\\" in self.model_size_or_path
+            ):
                 path = Path(self.model_size_or_path)
                 return path.exists()
             return True
@@ -83,7 +88,12 @@ class LocalWhisperSTT(BaseSTTProvider):
             ) from err
 
         try:
-            logger.info("Loading Faster-Whisper model: %s (device=%s, compute=%s)", self.model_size_or_path, self.device, self.compute_type)
+            logger.info(
+                "Loading Faster-Whisper model: %s (device=%s, compute=%s)",
+                self.model_size_or_path,
+                self.device,
+                self.compute_type,
+            )
             self._model = WhisperModel(
                 model_size_or_path=self.model_size_or_path,
                 device=self.device,

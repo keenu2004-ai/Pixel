@@ -36,7 +36,9 @@ def topology_env() -> dict[str, Any]:
 
     pc = MockPCNode(device_id="desktop-pc-01", device_name="Dev Workstation")
     phone = MockAndroidNode(device_id="android-phone-01", device_name="Pixel 8")
-    satellite_living = MockSatelliteNode(device_id="sat-living-room", device_name="Living Room Satellite")
+    satellite_living = MockSatelliteNode(
+        device_id="sat-living-room", device_name="Living Room Satellite"
+    )
     satellite_kitchen = MockSatelliteNode(device_id="sat-kitchen", device_name="Kitchen Satellite")
 
     # Pair and register all devices into registry
@@ -181,4 +183,3 @@ def test_cross_device_task_handoff_with_approval_preservation(topology_env: dict
         lease_token=task_payload.concurrency_lease_token,
     )
     assert complete_ok is True
-

@@ -17,7 +17,9 @@ from services.rag.retriever import RAGRetriever
 
 
 @pytest.fixture
-def test_environment() -> tuple[DeterministicIntentEngine, AgentRuntimeEngine, MemoryManager, RAGRetriever]:
+def test_environment() -> tuple[
+    DeterministicIntentEngine, AgentRuntimeEngine, MemoryManager, RAGRetriever
+]:
     temp_mem = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
     temp_rag = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
     temp_cp = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
@@ -46,7 +48,11 @@ def test_environment() -> tuple[DeterministicIntentEngine, AgentRuntimeEngine, M
 
 
 @pytest.mark.asyncio
-async def test_fast_path_intent_bypasses_agent_runtime(test_environment: tuple[DeterministicIntentEngine, AgentRuntimeEngine, MemoryManager, RAGRetriever]) -> None:
+async def test_fast_path_intent_bypasses_agent_runtime(
+    test_environment: tuple[
+        DeterministicIntentEngine, AgentRuntimeEngine, MemoryManager, RAGRetriever
+    ],
+) -> None:
     intent_engine, agent_engine, mem_mgr, _ = test_environment
 
     # Deterministic Command
@@ -67,7 +73,11 @@ async def test_fast_path_intent_bypasses_agent_runtime(test_environment: tuple[D
 
 
 @pytest.mark.asyncio
-async def test_multi_step_agent_execution_with_rag_and_memory(test_environment: tuple[DeterministicIntentEngine, AgentRuntimeEngine, MemoryManager, RAGRetriever]) -> None:
+async def test_multi_step_agent_execution_with_rag_and_memory(
+    test_environment: tuple[
+        DeterministicIntentEngine, AgentRuntimeEngine, MemoryManager, RAGRetriever
+    ],
+) -> None:
     intent_engine, agent_engine, mem_mgr, rag_ret = test_environment
 
     # 1. Pre-index technical documentation

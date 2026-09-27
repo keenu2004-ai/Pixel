@@ -1,6 +1,5 @@
 """Unit tests for AST-Aware Code & Markdown Chunkers."""
 
-
 from packages.contracts.rag import ChunkType
 from services.rag.chunking.ast_chunker import ASTCodeChunker
 from services.rag.chunking.markdown_chunker import MarkdownChunker
@@ -33,13 +32,19 @@ class AudioPipeline:
     assert len(chunks) >= 2  # calculate_metric, AudioPipeline (with methods)
 
     # Check for function symbol
-    func_chunks = [c for c in chunks if c.chunk_type == ChunkType.CODE_AST and c.symbol_name == "calculate_metric"]
+    func_chunks = [
+        c
+        for c in chunks
+        if c.chunk_type == ChunkType.CODE_AST and c.symbol_name == "calculate_metric"
+    ]
     assert len(func_chunks) == 1
     assert func_chunks[0].start_line == 6
     assert "def calculate_metric" in func_chunks[0].content
 
     # Check for class symbol
-    class_chunks = [c for c in chunks if c.chunk_type == ChunkType.CODE_AST and c.symbol_name == "AudioPipeline"]
+    class_chunks = [
+        c for c in chunks if c.chunk_type == ChunkType.CODE_AST and c.symbol_name == "AudioPipeline"
+    ]
     assert len(class_chunks) == 1
     assert "class AudioPipeline" in class_chunks[0].content
     assert "def process" in class_chunks[0].content

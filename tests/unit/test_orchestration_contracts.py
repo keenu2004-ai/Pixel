@@ -146,4 +146,3 @@ def test_handoff_contracts() -> None:
     )
     assert task.task_version == 2
     assert task.concurrency_lease_token == "lease_token_xyz"
-

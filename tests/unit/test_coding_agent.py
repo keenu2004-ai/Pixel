@@ -18,7 +18,9 @@ async def test_coding_agent_successful_patch_and_verify(tmp_path: Path) -> None:
 
     # Set up unit test for calculator
     test_file = tmp_path / "test_calc.py"
-    test_file.write_text("from calculator import add\ndef test_add(): assert add(2, 3) == 5\n", encoding="utf-8")
+    test_file.write_text(
+        "from calculator import add\ndef test_add(): assert add(2, 3) == 5\n", encoding="utf-8"
+    )
 
     bridge = SerenaBridge(workspace_root=tmp_path)
     test_runner = IsolatedTestRunner(workspace_root=tmp_path)
@@ -50,7 +52,10 @@ async def test_coding_agent_failed_tests_triggers_auto_rollback(tmp_path: Path) 
 
     # Set up test expecting multiplication
     test_file = tmp_path / "test_math.py"
-    test_file.write_text("from math_util import multiply\ndef test_mul(): assert multiply(2, 3) == 6\n", encoding="utf-8")
+    test_file.write_text(
+        "from math_util import multiply\ndef test_mul(): assert multiply(2, 3) == 6\n",
+        encoding="utf-8",
+    )
 
     bridge = SerenaBridge(workspace_root=tmp_path)
     test_runner = IsolatedTestRunner(workspace_root=tmp_path)

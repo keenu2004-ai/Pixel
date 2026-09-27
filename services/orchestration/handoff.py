@@ -42,8 +42,7 @@ def _sanitize_context(raw_dict: dict[str, Any]) -> dict[str, Any]:
             sanitized[key] = _sanitize_context(value)
         elif isinstance(value, list):
             sanitized[key] = [
-                _sanitize_context(item) if isinstance(item, dict) else item
-                for item in value
+                _sanitize_context(item) if isinstance(item, dict) else item for item in value
             ]
         else:
             sanitized[key] = value
@@ -138,7 +137,9 @@ class HandoffManager:
             # Check existing lease for task
             existing_lease = self._active_leases.get(task_id)
             if existing_lease and existing_lease["version"] >= current_version + 1:
-                raise RuntimeError(f"Stale task handoff attempt for task {task_id}: newer lease version exists.")
+                raise RuntimeError(
+                    f"Stale task handoff attempt for task {task_id}: newer lease version exists."
+                )
 
             new_version = current_version + 1
             lease_token = secrets.token_hex(24)

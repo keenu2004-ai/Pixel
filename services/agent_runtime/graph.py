@@ -152,7 +152,11 @@ class AgentGraph:
             logger.warning("Task %s blocked by Policy: %s", state.task_id, decision.reason)
         elif decision.verdict == PolicyVerdict.REQUIRE_USER_CONFIRMATION:
             state.status = AgentExecutionStatus.AWAITING_APPROVAL
-            logger.info("Task %s paused awaiting user approval for tool '%s'", state.task_id, state.pending_tool_name)
+            logger.info(
+                "Task %s paused awaiting user approval for tool '%s'",
+                state.task_id,
+                state.pending_tool_name,
+            )
         else:
             state.status = AgentExecutionStatus.EXECUTING
 
@@ -189,14 +193,16 @@ class AgentGraph:
             )
 
         # Record into tool history
-        state.tool_history.append({
-            "step": state.current_step,
-            "tool": state.pending_tool_name,
-            "arguments": state.pending_tool_arguments,
-            "success": result.success,
-            "output": result.output,
-            "error": result.error,
-        })
+        state.tool_history.append(
+            {
+                "step": state.current_step,
+                "tool": state.pending_tool_name,
+                "arguments": state.pending_tool_arguments,
+                "success": result.success,
+                "output": result.output,
+                "error": result.error,
+            }
+        )
 
         state.status = AgentExecutionStatus.VERIFYING
         state.updated_at = datetime.now(UTC)
@@ -255,7 +261,9 @@ class AgentGraph:
         elif state.status == AgentExecutionStatus.FAILED:
             state.final_response = f"I encountered an issue completing this task: {state.error}"
         elif state.status == AgentExecutionStatus.MAX_STEPS_EXCEEDED:
-            state.final_response = f"Task aborted: Maximum step limit reached ({state.max_steps} steps)."
+            state.final_response = (
+                f"Task aborted: Maximum step limit reached ({state.max_steps} steps)."
+            )
         else:
             state.final_response = f"Task finished with status: {state.status.value}"
 
@@ -276,7 +284,11 @@ class AgentGraph:
         await self.checkpointer.save_checkpoint(state)
 
         # 3. Main Loop
-        while state.status in (AgentExecutionStatus.PLANNING, AgentExecutionStatus.EXECUTING, AgentExecutionStatus.VERIFYING):
+        while state.status in (
+            AgentExecutionStatus.PLANNING,
+            AgentExecutionStatus.EXECUTING,
+            AgentExecutionStatus.VERIFYING,
+        ):
             # Select Tool
             state = await self.node_tool_selector(state)
             if not state.pending_tool_name:
@@ -287,7 +299,11 @@ class AgentGraph:
             state = await self.node_policy_gate(state)
 
             # If awaiting approval or policy denied -> break loop & save checkpoint
-            if state.status in (AgentExecutionStatus.AWAITING_APPROVAL, AgentExecutionStatus.POLICY_DENIED, AgentExecutionStatus.FAILED):
+            if state.status in (
+                AgentExecutionStatus.AWAITING_APPROVAL,
+                AgentExecutionStatus.POLICY_DENIED,
+                AgentExecutionStatus.FAILED,
+            ):
                 await self.checkpointer.save_checkpoint(state)
                 break
 
@@ -329,7 +345,9 @@ class AgentGraph:
             return None
 
         if state.status != AgentExecutionStatus.AWAITING_APPROVAL:
-            logger.warning("Task %s is not in AWAITING_APPROVAL state (current: %s)", task_id, state.status)
+            logger.warning(
+                "Task %s is not in AWAITING_APPROVAL state (current: %s)", task_id, state.status
+            )
             return state
 
         if not user_approved:
@@ -364,7 +382,11 @@ class AgentGraph:
 
     async def run_from_step(self, state: AgentState) -> AgentState:
         """Resumes main loop execution from active tool step."""
-        while state.status in (AgentExecutionStatus.PLANNING, AgentExecutionStatus.EXECUTING, AgentExecutionStatus.VERIFYING):
+        while state.status in (
+            AgentExecutionStatus.PLANNING,
+            AgentExecutionStatus.EXECUTING,
+            AgentExecutionStatus.VERIFYING,
+        ):
             if state.status == AgentExecutionStatus.EXECUTING and state.pending_tool_name:
                 state = await self.node_executor(state)
                 state = await self.node_verifier(state)
@@ -378,7 +400,11 @@ class AgentGraph:
                 break
 
             state = await self.node_policy_gate(state)
-            if state.status in (AgentExecutionStatus.AWAITING_APPROVAL, AgentExecutionStatus.POLICY_DENIED, AgentExecutionStatus.FAILED):
+            if state.status in (
+                AgentExecutionStatus.AWAITING_APPROVAL,
+                AgentExecutionStatus.POLICY_DENIED,
+                AgentExecutionStatus.FAILED,
+            ):
                 await self.checkpointer.save_checkpoint(state)
                 break
 

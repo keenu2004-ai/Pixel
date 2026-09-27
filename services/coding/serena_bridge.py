@@ -35,7 +35,9 @@ class SerenaBridge:
         try:
             target.relative_to(self.workspace_root)
         except ValueError as err:
-            raise PermissionError(f"Path '{relative_path}' escapes workspace sandbox '{self.workspace_root}'") from err
+            raise PermissionError(
+                f"Path '{relative_path}' escapes workspace sandbox '{self.workspace_root}'"
+            ) from err
         return target
 
     # -----------------------------------------------------------------------
@@ -131,13 +133,20 @@ class SerenaBridge:
 
         for root, dirs, files in os.walk(self.workspace_root):
             # Skip hidden and cache dirs
-            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("__pycache__", "venv", ".venv", "node_modules")]
+            dirs[:] = [
+                d
+                for d in dirs
+                if not d.startswith(".")
+                and d not in ("__pycache__", "venv", ".venv", "node_modules")
+            ]
             for f in files:
                 if f.endswith(".py"):
                     full_path = Path(root) / f
                     file_symbols = self.extract_symbols_from_file(full_path)
                     for sym in file_symbols:
-                        if q_lower in sym.name.lower() or (sym.docstring and q_lower in sym.docstring.lower()):
+                        if q_lower in sym.name.lower() or (
+                            sym.docstring and q_lower in sym.docstring.lower()
+                        ):
                             if symbol_kind is None or sym.kind == symbol_kind:
                                 results.append(sym)
                                 if len(results) >= max_results:
@@ -151,7 +160,12 @@ class SerenaBridge:
         target_name = symbol_name.split(".")[-1]  # Support both method and function name
 
         for root, dirs, files in os.walk(self.workspace_root):
-            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("__pycache__", "venv", ".venv", "node_modules")]
+            dirs[:] = [
+                d
+                for d in dirs
+                if not d.startswith(".")
+                and d not in ("__pycache__", "venv", ".venv", "node_modules")
+            ]
             for f in files:
                 if f.endswith((".py", ".md", ".json", ".toml")):
                     full_path = Path(root) / f
@@ -231,8 +245,12 @@ class SerenaBridge:
         )
         diff_text = "".join(diff_lines)
 
-        lines_added = sum(1 for line in diff_lines if line.startswith("+") and not line.startswith("+++"))
-        lines_removed = sum(1 for line in diff_lines if line.startswith("-") and not line.startswith("---"))
+        lines_added = sum(
+            1 for line in diff_lines if line.startswith("+") and not line.startswith("+++")
+        )
+        lines_removed = sum(
+            1 for line in diff_lines if line.startswith("-") and not line.startswith("---")
+        )
 
         # 4. Generate Rollback Token & Save State
         rollback_token = uuid4().hex
@@ -242,7 +260,13 @@ class SerenaBridge:
         safe_path.parent.mkdir(parents=True, exist_ok=True)
         safe_path.write_text(new_content, encoding="utf-8")
 
-        logger.info("Applied patch to %s (+%d/-%d lines). Rollback token: %s", safe_path.name, lines_added, lines_removed, rollback_token)
+        logger.info(
+            "Applied patch to %s (+%d/-%d lines). Rollback token: %s",
+            safe_path.name,
+            lines_added,
+            lines_removed,
+            rollback_token,
+        )
 
         return PatchResult(
             file_path=str(safe_path.relative_to(self.workspace_root)),
@@ -262,7 +286,9 @@ class SerenaBridge:
         safe_path, original_content = self._rollback_store.pop(rollback_token)
         try:
             safe_path.write_text(original_content, encoding="utf-8")
-            logger.info("Successfully rolled back %s using token %s", safe_path.name, rollback_token)
+            logger.info(
+                "Successfully rolled back %s using token %s", safe_path.name, rollback_token
+            )
             return True
         except Exception as err:
             logger.error("Failed to restore %s during rollback: %s", safe_path.name, err)

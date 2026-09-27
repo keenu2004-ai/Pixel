@@ -12,6 +12,7 @@ from services.os_control.windows_adapter import WindowsOSAdapter
 @pytest.fixture
 def windows_adapter(tmp_path: object) -> WindowsOSAdapter:
     import pathlib
+
     return WindowsOSAdapter(persistence_dir=str(pathlib.Path(str(tmp_path))))
 
 

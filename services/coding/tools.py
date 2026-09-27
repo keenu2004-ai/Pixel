@@ -29,9 +29,20 @@ class SemanticCodeSearchTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Symbol name or substring to search for"},
-                    "symbol_kind": {"type": "string", "enum": ["function", "method", "class", "variable", "module", "interface"], "description": "Optional symbol kind filter"},
-                    "max_results": {"type": "integer", "default": 20, "description": "Max results to return"},
+                    "query": {
+                        "type": "string",
+                        "description": "Symbol name or substring to search for",
+                    },
+                    "symbol_kind": {
+                        "type": "string",
+                        "enum": ["function", "method", "class", "variable", "module", "interface"],
+                        "description": "Optional symbol kind filter",
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Max results to return",
+                    },
                 },
                 "required": ["query"],
             },
@@ -47,7 +58,9 @@ class SemanticCodeSearchTool(BaseTool):
         symbol_kind = SymbolKind(kind_str) if kind_str else None
         max_results = arguments.get("max_results", 20)
 
-        results = self.bridge.search_symbols(query=query, symbol_kind=symbol_kind, max_results=max_results)
+        results = self.bridge.search_symbols(
+            query=query, symbol_kind=symbol_kind, max_results=max_results
+        )
         duration_ms = int((time.perf_counter() - start_time) * 1000)
 
         return ToolExecutionResult(
@@ -73,7 +86,10 @@ class InspectSymbolTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "file_path": {"type": "string", "description": "Relative workspace file path to inspect"},
+                    "file_path": {
+                        "type": "string",
+                        "description": "Relative workspace file path to inspect",
+                    },
                 },
                 "required": ["file_path"],
             },
@@ -118,8 +134,15 @@ class FindReferencesTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "symbol_name": {"type": "string", "description": "Name of the symbol to locate"},
-                    "max_results": {"type": "integer", "default": 50, "description": "Maximum number of references"},
+                    "symbol_name": {
+                        "type": "string",
+                        "description": "Name of the symbol to locate",
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Maximum number of references",
+                    },
                 },
                 "required": ["symbol_name"],
             },
@@ -160,8 +183,15 @@ class ApplyCodePatchTool(BaseTool):
                 "type": "object",
                 "properties": {
                     "file_path": {"type": "string", "description": "Workspace file path to modify"},
-                    "new_content": {"type": "string", "description": "Complete new content for the file"},
-                    "validate_syntax": {"type": "boolean", "default": True, "description": "Whether to enforce ast.parse syntax checking"},
+                    "new_content": {
+                        "type": "string",
+                        "description": "Complete new content for the file",
+                    },
+                    "validate_syntax": {
+                        "type": "boolean",
+                        "default": True,
+                        "description": "Whether to enforce ast.parse syntax checking",
+                    },
                 },
                 "required": ["file_path", "new_content"],
             },
@@ -216,7 +246,10 @@ class RollbackCodePatchTool(BaseTool):
             parameters_schema={
                 "type": "object",
                 "properties": {
-                    "rollback_token": {"type": "string", "description": "Rollback token returned by apply_code_patch"},
+                    "rollback_token": {
+                        "type": "string",
+                        "description": "Rollback token returned by apply_code_patch",
+                    },
                 },
                 "required": ["rollback_token"],
             },
@@ -259,8 +292,15 @@ class RunTestsTool(BaseTool):
                         "items": {"type": "string"},
                         "description": "List of test files or nodes to run",
                     },
-                    "filter_expr": {"type": "string", "description": "Optional keyword expression filter (-k)"},
-                    "timeout_seconds": {"type": "integer", "default": 30, "description": "Execution timeout"},
+                    "filter_expr": {
+                        "type": "string",
+                        "description": "Optional keyword expression filter (-k)",
+                    },
+                    "timeout_seconds": {
+                        "type": "integer",
+                        "default": 30,
+                        "description": "Execution timeout",
+                    },
                 },
             },
             timeout_ms=45000,
@@ -285,7 +325,9 @@ class RunTestsTool(BaseTool):
             return ToolExecutionResult(
                 success=result.all_passed,
                 output=result.model_dump(),
-                error=None if result.all_passed else f"{result.failed} tests failed, {result.errors} errors",
+                error=None
+                if result.all_passed
+                else f"{result.failed} tests failed, {result.errors} errors",
                 duration_ms=duration_ms,
                 evidence={
                     "passed": result.passed,

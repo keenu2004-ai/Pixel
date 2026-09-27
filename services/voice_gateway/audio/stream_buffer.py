@@ -10,19 +10,22 @@ from packages.contracts.events import AudioFrame
 
 class AudioFormatError(ValueError):
     """Raised when an incoming audio frame violates the canonical audio contract."""
+
     pass
 
 
 class BufferOverflowError(RuntimeError):
     """Raised when the buffer exceeds max capacity under RAISE_ON_OVERFLOW strategy."""
+
     pass
 
 
 class OverflowStrategy(StrEnum):
     """Backpressure handling strategy when audio buffer is saturated."""
-    DROP_OLDEST = "DROP_OLDEST"          # Drops oldest buffered frames to prioritize low latency
-    RAISE_ON_OVERFLOW = "RAISE_ON_OVERFLOW" # Raises BufferOverflowError immediately
-    BLOCK = "BLOCK"                      # Blocks producer until space becomes available
+
+    DROP_OLDEST = "DROP_OLDEST"  # Drops oldest buffered frames to prioritize low latency
+    RAISE_ON_OVERFLOW = "RAISE_ON_OVERFLOW"  # Raises BufferOverflowError immediately
+    BLOCK = "BLOCK"  # Blocks producer until space becomes available
 
 
 class AudioStreamBuffer:
@@ -42,7 +45,7 @@ class AudioStreamBuffer:
         self,
         max_frames: int = 100,
         max_bytes: int = 10 * 1024 * 1024,  # 10 MB default safety ceiling
-        overflow_strategy: OverflowStrategy = OverflowStrategy.DROP_OLDEST
+        overflow_strategy: OverflowStrategy = OverflowStrategy.DROP_OLDEST,
     ) -> None:
         if max_frames <= 0:
             raise ValueError("max_frames must be a positive integer")
@@ -111,8 +114,8 @@ class AudioStreamBuffer:
 
             # Check capacity limits
             while (
-                len(self._queue) >= self.max_frames or
-                self._current_bytes + frame_size > self.max_bytes
+                len(self._queue) >= self.max_frames
+                or self._current_bytes + frame_size > self.max_bytes
             ):
                 if self.overflow_strategy == OverflowStrategy.DROP_OLDEST:
                     if self._queue:

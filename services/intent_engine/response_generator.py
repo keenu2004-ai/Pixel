@@ -55,10 +55,16 @@ class ResponseGenerator:
         elif target == "SYSTEM_QUERY":
             return cls._format_system_query_response(entities, output, is_hindi)
 
-        return "Command completed successfully." if not is_hindi else "Command successfully poora ho gaya hai."
+        return (
+            "Command completed successfully."
+            if not is_hindi
+            else "Command successfully poora ho gaya hai."
+        )
 
     @classmethod
-    def _format_error(cls, packet: IntentPacket, result: ToolExecutionResult, is_hindi: bool) -> str:
+    def _format_error(
+        cls, packet: IntentPacket, result: ToolExecutionResult, is_hindi: bool
+    ) -> str:
         """Formats error and policy rejection messages."""
         err_msg = result.error or "Unknown error"
         if "Security Policy" in err_msg or "denied" in err_msg.lower():
@@ -71,7 +77,9 @@ class ResponseGenerator:
         return f"Sorry, could not complete request: {err_msg}"
 
     @classmethod
-    def _format_timer_response(cls, entities: dict[str, Any], output: dict[str, Any], is_hindi: bool) -> str:
+    def _format_timer_response(
+        cls, entities: dict[str, Any], output: dict[str, Any], is_hindi: bool
+    ) -> str:
         action = entities.get("action", TimerAction.SET)
         if action == TimerAction.SET:
             sec = entities.get("duration_seconds", 0)
@@ -100,7 +108,9 @@ class ResponseGenerator:
         return "Timer updated."
 
     @classmethod
-    def _format_alarm_response(cls, entities: dict[str, Any], output: dict[str, Any], is_hindi: bool) -> str:
+    def _format_alarm_response(
+        cls, entities: dict[str, Any], output: dict[str, Any], is_hindi: bool
+    ) -> str:
         action = entities.get("action", AlarmAction.SET)
         if action == AlarmAction.SET:
             target_str = entities.get("time_str")
@@ -129,7 +139,9 @@ class ResponseGenerator:
         return "Alarm updated."
 
     @classmethod
-    def _format_reminder_response(cls, entities: dict[str, Any], output: dict[str, Any], is_hindi: bool) -> str:
+    def _format_reminder_response(
+        cls, entities: dict[str, Any], output: dict[str, Any], is_hindi: bool
+    ) -> str:
         action = entities.get("action", ReminderAction.SET)
         if action == ReminderAction.SET:
             txt = entities.get("text", "Reminder")
@@ -193,7 +205,9 @@ class ResponseGenerator:
         return f"{app_name} updated."
 
     @classmethod
-    def _format_system_query_response(cls, entities: dict[str, Any], output: Any, is_hindi: bool) -> str:
+    def _format_system_query_response(
+        cls, entities: dict[str, Any], output: Any, is_hindi: bool
+    ) -> str:
         q_type = entities.get("query_type")
         if q_type == SystemQueryType.TIME:
             now = datetime.now()

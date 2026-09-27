@@ -68,7 +68,9 @@ def test_wake_arbitration_5_satellites_latency_benchmark() -> None:
     t1 = time.perf_counter()
 
     elapsed_ms = (t1 - t0) * 1000.0
-    assert elapsed_ms < 5.0, f"Arbitration across 5 satellites took {elapsed_ms:.2f}ms, expected < 5ms"
+    assert elapsed_ms < 5.0, (
+        f"Arbitration across 5 satellites took {elapsed_ms:.2f}ms, expected < 5ms"
+    )
 
 
 def test_context_handoff_latency_benchmark() -> None:
@@ -85,7 +87,14 @@ def test_context_handoff_latency_benchmark() -> None:
             public_key_pem="pem",
         )
         chal = registry.initiate_pairing(req)
-        registry.complete_pairing(PairingConfirmation(challenge_id=chal.challenge_id, device_id=dev_id, pin_code=chal.pin_code, user_confirmed=True))
+        registry.complete_pairing(
+            PairingConfirmation(
+                challenge_id=chal.challenge_id,
+                device_id=dev_id,
+                pin_code=chal.pin_code,
+                user_confirmed=True,
+            )
+        )
         presence.update_heartbeat(dev_id)
 
     handoff = HandoffManager(registry=registry, presence=presence)
@@ -115,10 +124,13 @@ def test_context_handoff_latency_benchmark() -> None:
 async def test_zero_regression_on_deterministic_intent_engine() -> None:
     engine = DeterministicIntentEngine(os_adapter=MockOSAdapter())
     t0 = time.perf_counter()
-    resp, packet, result = await engine.handle_transcript("volume 80 percent karo", session_id="bench_sess")
+    resp, packet, result = await engine.handle_transcript(
+        "volume 80 percent karo", session_id="bench_sess"
+    )
     t1 = time.perf_counter()
 
     elapsed_ms = (t1 - t0) * 1000.0
     assert len(resp) > 0
-    assert elapsed_ms < 50.0, f"Deterministic intent handle took {elapsed_ms:.3f}ms, expected < 50ms"
-
+    assert elapsed_ms < 50.0, (
+        f"Deterministic intent handle took {elapsed_ms:.3f}ms, expected < 50ms"
+    )

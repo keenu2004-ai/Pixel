@@ -57,9 +57,9 @@ def test_download_model_integrity_success(tmp_path: os.PathLike[str]) -> None:
                     "url": "http://example.com/model.onnx",
                     "relative_path": "test_model.onnx",
                     "sha256": calculate_file_sha256_bytes(fake_content),
-                    "description": "Test Model"
+                    "description": "Test Model",
                 }
-            }
+            },
         ):
             success = download_model("test-model", base_dir=base)
             assert success is True
@@ -84,9 +84,9 @@ def test_download_model_integrity_mismatch_rejected(tmp_path: os.PathLike[str]) 
                     "url": "http://example.com/model.onnx",
                     "relative_path": "test_model.onnx",
                     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "description": "Test Model"
+                    "description": "Test Model",
                 }
-            }
+            },
         ):
             success = download_model("test-model", base_dir=base)
             assert success is False

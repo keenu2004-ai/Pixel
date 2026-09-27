@@ -41,6 +41,7 @@ class KokoroTTSProvider(BaseTTSProvider):
         """Checks if onnxruntime is available and model path exists."""
         try:
             import onnxruntime  # noqa: F401
+
             return Path(self.model_path).exists()
         except ImportError:
             return False

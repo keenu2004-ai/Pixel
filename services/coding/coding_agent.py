@@ -54,9 +54,21 @@ class CodingAgent:
         # 1. Planning Phase
         steps = [
             PlanStep(step_id=1, description="Inspect repository symbols and structure"),
-            PlanStep(step_id=2, description="Run baseline test reproduction", tool_name="run_isolated_tests"),
-            PlanStep(step_id=3, description="Apply code modification with AST syntax validation", tool_name="apply_code_patch"),
-            PlanStep(step_id=4, description="Execute verification tests in isolated runner", tool_name="run_isolated_tests"),
+            PlanStep(
+                step_id=2,
+                description="Run baseline test reproduction",
+                tool_name="run_isolated_tests",
+            ),
+            PlanStep(
+                step_id=3,
+                description="Apply code modification with AST syntax validation",
+                tool_name="apply_code_patch",
+            ),
+            PlanStep(
+                step_id=4,
+                description="Execute verification tests in isolated runner",
+                tool_name="run_isolated_tests",
+            ),
             PlanStep(step_id=5, description="Verify result integrity or trigger rollback"),
         ]
         state.plan = TaskPlan(goal=user_query, steps=steps)
@@ -102,7 +114,9 @@ class CodingAgent:
         if test_target:
             verify_test_res = self.test_runner.run_tests(test_paths=[test_target])
             state.plan.steps[3].result = verify_test_res.model_dump()
-            state.plan.steps[3].status = StepStatus.COMPLETED if verify_test_res.all_passed else StepStatus.FAILED
+            state.plan.steps[3].status = (
+                StepStatus.COMPLETED if verify_test_res.all_passed else StepStatus.FAILED
+            )
         else:
             state.plan.steps[3].status = StepStatus.SKIPPED
 
@@ -115,7 +129,9 @@ class CodingAgent:
                 rollback_success = self.bridge.rollback_patch(patch_res.rollback_token)
 
             state.plan.steps[4].status = StepStatus.FAILED
-            state.plan.steps[4].error = f"Verification tests failed ({verify_test_res.failed} failures). Auto-rollback executed: {rollback_success}"
+            state.plan.steps[
+                4
+            ].error = f"Verification tests failed ({verify_test_res.failed} failures). Auto-rollback executed: {rollback_success}"
             state.status = AgentExecutionStatus.FAILED
             state.error = state.plan.steps[4].error
             state.last_verification = VerificationResult(
@@ -130,12 +146,17 @@ class CodingAgent:
         state.plan.steps[4].status = StepStatus.COMPLETED
         state.plan.is_complete = True
         state.status = AgentExecutionStatus.SUCCESS
-        state.final_response = f"Coding task successfully completed and verified for query: '{user_query}'"
+        state.final_response = (
+            f"Coding task successfully completed and verified for query: '{user_query}'"
+        )
         state.last_verification = VerificationResult(
             is_verified=True,
             tool_name="apply_code_patch",
             details="AST syntax validation and isolated tests passed cleanly.",
-            evidence={"diff": patch_res.diff if patch_res else "", "tests_passed": verify_test_res.passed if verify_test_res else 0},
+            evidence={
+                "diff": patch_res.diff if patch_res else "",
+                "tests_passed": verify_test_res.passed if verify_test_res else 0,
+            },
         )
 
         return state

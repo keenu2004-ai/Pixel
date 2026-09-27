@@ -40,7 +40,9 @@ async def test_end_to_end_timer_voice_flow(
     tts = MagicMock()
 
     # Speech ends with user saying "10 minute ka timer laga do"
-    vad.process_frame = AsyncMock(return_value=VADEvent(session_id="s_e2e", state=VADState.SPEECH_END))
+    vad.process_frame = AsyncMock(
+        return_value=VADEvent(session_id="s_e2e", state=VADState.SPEECH_END)
+    )
     stt.transcribe_once = AsyncMock(
         return_value=TranscriptEvent(
             session_id="s_e2e",
@@ -100,7 +102,9 @@ async def test_end_to_end_alarm_voice_flow(
     stt = MagicMock()
     tts = MagicMock()
 
-    vad.process_frame = AsyncMock(return_value=VADEvent(session_id="s_alarm", state=VADState.SPEECH_END))
+    vad.process_frame = AsyncMock(
+        return_value=VADEvent(session_id="s_alarm", state=VADState.SPEECH_END)
+    )
     stt.transcribe_once = AsyncMock(
         return_value=TranscriptEvent(
             session_id="s_alarm",
@@ -147,7 +151,9 @@ async def test_end_to_end_volume_flow(
     stt = MagicMock()
     tts = MagicMock()
 
-    vad.process_frame = AsyncMock(return_value=VADEvent(session_id="s_vol", state=VADState.SPEECH_END))
+    vad.process_frame = AsyncMock(
+        return_value=VADEvent(session_id="s_vol", state=VADState.SPEECH_END)
+    )
     stt.transcribe_once = AsyncMock(
         return_value=TranscriptEvent(
             session_id="s_vol",

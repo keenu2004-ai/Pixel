@@ -39,7 +39,9 @@ class DeviceRegistry:
             # If already revoked, block pairing
             existing = self._devices.get(request.device_id)
             if existing and existing.trust_state == DeviceTrustState.REVOKED:
-                raise ValueError(f"Device {request.device_id} is REVOKED and cannot pair without administrative reset.")
+                raise ValueError(
+                    f"Device {request.device_id} is REVOKED and cannot pair without administrative reset."
+                )
 
             self._pending_requests[request.device_id] = request
             return self.pki.create_pairing_challenge(device_id=request.device_id)
@@ -79,7 +81,9 @@ class DeviceRegistry:
             self._pending_requests.pop(request.device_id, None)
             return response
 
-    def authenticate_device_connection(self, device_id: str, cert_pem: str) -> tuple[bool, str | None]:
+    def authenticate_device_connection(
+        self, device_id: str, cert_pem: str
+    ) -> tuple[bool, str | None]:
         """Authenticate mTLS client certificate during network connection establishment."""
         with self._lock:
             device = self._devices.get(device_id)
@@ -221,7 +225,10 @@ class PresenceManager:
 
         with self._lock:
             for device_id, record in self._presence.items():
-                if record.presence_state == DevicePresenceState.ONLINE and record.last_heartbeat < cutoff:
+                if (
+                    record.presence_state == DevicePresenceState.ONLINE
+                    and record.last_heartbeat < cutoff
+                ):
                     record.presence_state = DevicePresenceState.OFFLINE
                     record.health_state = DeviceHealthState.UNAVAILABLE
                     stale_ids.append(device_id)
@@ -232,4 +239,6 @@ class PresenceManager:
         """Return list of all currently ONLINE devices."""
         with self._lock:
             self.sweep_stale_devices()
-            return [r for r in self._presence.values() if r.presence_state == DevicePresenceState.ONLINE]
+            return [
+                r for r in self._presence.values() if r.presence_state == DevicePresenceState.ONLINE
+            ]

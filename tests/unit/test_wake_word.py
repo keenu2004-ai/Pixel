@@ -18,10 +18,7 @@ from services.voice_gateway.wake.openwakeword_provider import (
 def _create_frame(num_samples: int = 640) -> AudioFrame:
     # 640 samples = 40ms @ 16kHz
     return AudioFrame(
-        sample_rate=16000,
-        channels=1,
-        pcm_data=b"\x00\x01" * num_samples,
-        timestamp_ms=1000
+        sample_rate=16000, channels=1, pcm_data=b"\x00\x01" * num_samples, timestamp_ms=1000
     )
 
 
@@ -36,7 +33,9 @@ def test_openwakeword_lazy_init() -> None:
 def test_missing_model_raises_integrity_error() -> None:
     config = OpenWakeWordConfig(model_paths={"hey_pixel": "missing.onnx"})
     provider = OpenWakeWordProvider(config)
-    with pytest.raises(WakeWordModelIntegrityError, match="Wake word model for 'hey_pixel' not found"):
+    with pytest.raises(
+        WakeWordModelIntegrityError, match="Wake word model for 'hey_pixel' not found"
+    ):
         provider.validate_model_integrity()
 
 
@@ -47,7 +46,9 @@ def test_checksum_mismatch_raises_integrity_error(tmp_path: os.PathLike[str]) ->
 
     config = OpenWakeWordConfig(
         model_paths={"hey_pixel": path},
-        expected_sha256={"hey_pixel": "0000000000000000000000000000000000000000000000000000000000000000"}
+        expected_sha256={
+            "hey_pixel": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
     )
     provider = OpenWakeWordProvider(config)
     with pytest.raises(WakeWordModelIntegrityError, match="Checksum mismatch"):
@@ -60,7 +61,7 @@ async def test_wake_detection_trigger_and_cooldown() -> None:
         model_paths={"hey_pixel": "fake.onnx"},
         threshold=0.6,
         cooldown_seconds=1.0,
-        chunk_samples=1280
+        chunk_samples=1280,
     )
     provider = OpenWakeWordProvider(config)
 

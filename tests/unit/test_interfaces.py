@@ -18,37 +18,26 @@ from packages.core.interfaces import (
 
 class MockSTT(BaseSTTProvider):
     async def transcribe_stream(
-        self,
-        audio_stream: AsyncIterator[AudioFrame],
-        session_id: str,
-        language: str | None = None
+        self, audio_stream: AsyncIterator[AudioFrame], session_id: str, language: str | None = None
     ) -> AsyncIterator[TranscriptEvent]:
         async for _ in audio_stream:
             yield TranscriptEvent(session_id=session_id, text="hello", is_final=True)
 
     async def transcribe_once(
-        self,
-        audio_bytes: bytes,
-        language: str | None = None
+        self, audio_bytes: bytes, language: str | None = None
     ) -> TranscriptEvent:
         return TranscriptEvent(session_id="mock", text="test audio", is_final=True)
 
 
 class MockTTS(BaseTTSProvider):
     async def synthesize_stream(
-        self,
-        text: str,
-        voice_id: str | None = None,
-        language: str = "hi-Latn"
+        self, text: str, voice_id: str | None = None, language: str = "hi-Latn"
     ) -> AsyncIterator[bytes]:
         yield b"chunk1"
         yield b"chunk2"
 
     async def synthesize_once(
-        self,
-        text: str,
-        voice_id: str | None = None,
-        language: str = "hi-Latn"
+        self, text: str, voice_id: str | None = None, language: str = "hi-Latn"
     ) -> bytes:
         return b"complete_audio"
 
@@ -61,7 +50,7 @@ class MockTool(BaseTool):
             description="Mock capability",
             risk_class=RiskClass.READ,
             parameters_schema={},
-            audit_level=AuditLevel.BASIC
+            audit_level=AuditLevel.BASIC,
         )
 
     async def execute(self, arguments: dict[str, Any], session_id: str) -> ToolExecutionResult:
@@ -103,7 +92,9 @@ class MockMemory(BaseMemoryStore):
             return True
         return False
 
-    async def search_episodic(self, query: str, user_id: str, limit: int = 5) -> list[dict[str, Any]]:
+    async def search_episodic(
+        self, query: str, user_id: str, limit: int = 5
+    ) -> list[dict[str, Any]]:
         return [{"query": query, "match": "mock_episode"}]
 
 

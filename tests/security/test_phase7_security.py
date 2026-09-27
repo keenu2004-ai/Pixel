@@ -29,7 +29,14 @@ def test_invariant_revoked_device_cannot_authenticate_or_re_pair() -> None:
         public_key_pem="pubkey",
     )
     chal = registry.initiate_pairing(req)
-    resp = registry.complete_pairing(PairingConfirmation(challenge_id=chal.challenge_id, device_id=req.device_id, pin_code=chal.pin_code, user_confirmed=True))
+    resp = registry.complete_pairing(
+        PairingConfirmation(
+            challenge_id=chal.challenge_id,
+            device_id=req.device_id,
+            pin_code=chal.pin_code,
+            user_confirmed=True,
+        )
+    )
     assert resp.success is True
     assert resp.certificate_pem is not None
 
@@ -116,7 +123,14 @@ def test_invariant_split_brain_task_concurrency_protection() -> None:
             public_key_pem=f"pem-{dev_id}",
         )
         chal = registry.initiate_pairing(req)
-        registry.complete_pairing(PairingConfirmation(challenge_id=chal.challenge_id, device_id=dev_id, pin_code=chal.pin_code, user_confirmed=True))
+        registry.complete_pairing(
+            PairingConfirmation(
+                challenge_id=chal.challenge_id,
+                device_id=dev_id,
+                pin_code=chal.pin_code,
+                user_confirmed=True,
+            )
+        )
         presence.update_heartbeat(dev_id)
 
     handoff = HandoffManager(registry=registry, presence=presence)
@@ -132,7 +146,9 @@ def test_invariant_split_brain_task_concurrency_protection() -> None:
     assert h1.task_version == 2
 
     # 2. Complete handoff to PC
-    assert handoff.complete_task_handoff("task-critical", "pc-01", h1.concurrency_lease_token) is True
+    assert (
+        handoff.complete_task_handoff("task-critical", "pc-01", h1.concurrency_lease_token) is True
+    )
 
     # 3. Old phone node tries to claim with stale version 1 -> Rejected
     with pytest.raises(RuntimeError, match="Stale task handoff"):
@@ -143,4 +159,3 @@ def test_invariant_split_brain_task_concurrency_protection() -> None:
             current_version=1,
             plan_steps=[],
         )
-

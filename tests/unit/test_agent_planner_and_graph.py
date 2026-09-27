@@ -16,6 +16,7 @@ from services.agent_runtime.planner import AgentPlanner
 
 class MockSensitiveTool(BaseTool):
     """Tool that strictly requires user confirmation."""
+
     @property
     def spec(self) -> ToolSpec:
         return ToolSpec(
@@ -42,8 +43,18 @@ def agent_engine() -> AgentRuntimeEngine:
 
 def test_agent_planner_formulate_plan() -> None:
     specs = [
-        ToolSpec(name="search_knowledge", description="search", risk_class=RiskClass.READ, parameters_schema={}),
-        ToolSpec(name="write_file", description="write", risk_class=RiskClass.REVERSIBLE_WRITE, parameters_schema={}),
+        ToolSpec(
+            name="search_knowledge",
+            description="search",
+            risk_class=RiskClass.READ,
+            parameters_schema={},
+        ),
+        ToolSpec(
+            name="write_file",
+            description="write",
+            risk_class=RiskClass.REVERSIBLE_WRITE,
+            parameters_schema={},
+        ),
     ]
     plan = AgentPlanner.formulate_plan(
         user_query="Find information about audio pipeline and save to audio_summary.txt",

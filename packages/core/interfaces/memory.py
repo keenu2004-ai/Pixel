@@ -33,6 +33,8 @@ class BaseMemoryStore(ABC):
         pass
 
     @abstractmethod
-    async def search_episodic(self, query: str, user_id: str, limit: int = 5) -> list[dict[str, Any]]:
+    async def search_episodic(
+        self, query: str, user_id: str, limit: int = 5
+    ) -> list[dict[str, Any]]:
         """Performs semantic similarity search over episodic interaction history."""
         pass

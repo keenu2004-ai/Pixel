@@ -31,7 +31,6 @@ class WakeArbiter:
         # Timestamps of recent events for sliding window cleanup
         self._event_timestamps: dict[str, int] = {}
 
-
     def calculate_score(
         self,
         candidate: WakeArbitrationCandidate,
@@ -55,8 +54,12 @@ class WakeArbiter:
         score -= candidate.rtt_ms * 0.1
 
         # Active interaction owner boost (+100 pts)
-        owner = interaction_owner if enforce_owner else (interaction_owner or self._active_audio_owner)
-        if candidate.is_current_interaction_owner or (owner is not None and owner == candidate.device_id):
+        owner = (
+            interaction_owner if enforce_owner else (interaction_owner or self._active_audio_owner)
+        )
+        if candidate.is_current_interaction_owner or (
+            owner is not None and owner == candidate.device_id
+        ):
             score += 100.0
 
         return score
@@ -87,13 +90,17 @@ class WakeArbiter:
             candidates = self._event_groups[event_id]
 
             # Score all candidates in group with consistent baseline owner
-            scored = [(c, self.calculate_score(c, interaction_owner=prior_owner, enforce_owner=True)) for c in candidates]
+            scored = [
+                (c, self.calculate_score(c, interaction_owner=prior_owner, enforce_owner=True))
+                for c in candidates
+            ]
             # Deterministic sorting: highest score first, then lowest timestamp_ms, then device_id
             scored.sort(key=lambda item: (-item[1], item[0].timestamp_ms, item[0].device_id))
 
-
             winner_candidate, winner_score = scored[0]
-            suppressed = [c.device_id for c, _ in scored if c.device_id != winner_candidate.device_id]
+            suppressed = [
+                c.device_id for c, _ in scored if c.device_id != winner_candidate.device_id
+            ]
 
             result = WakeArbitrationResult(
                 arbitration_id=uuid4().hex,
@@ -109,8 +116,6 @@ class WakeArbiter:
             self._settled_events[event_id] = result
             self._active_audio_owner = winner_candidate.device_id
             return result
-
-
 
     def get_active_audio_owner(self) -> str | None:
         """Get currently active audio owner device ID."""

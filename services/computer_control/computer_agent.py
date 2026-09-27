@@ -43,8 +43,18 @@ class ComputerAgent:
         )
 
         steps = [
-            PlanStep(step_id=1, description="Inspect open desktop application windows", tool_name="list_windows"),
-            PlanStep(step_id=2, description=f"Focus target window '{target_app}'" if target_app else "Get active window", tool_name="focus_window"),
+            PlanStep(
+                step_id=1,
+                description="Inspect open desktop application windows",
+                tool_name="list_windows",
+            ),
+            PlanStep(
+                step_id=2,
+                description=f"Focus target window '{target_app}'"
+                if target_app
+                else "Get active window",
+                tool_name="focus_window",
+            ),
             PlanStep(step_id=3, description=f"Perform desktop action: {action}"),
             PlanStep(step_id=4, description="Verify desktop state matches expected outcome"),
         ]
@@ -65,7 +75,9 @@ class ComputerAgent:
             state.plan.steps[1].result = {"focused": focused, "app": target_app}
             if not focused:
                 state.plan.steps[1].status = StepStatus.FAILED
-                state.plan.steps[1].error = f"Failed to find or focus application window '{target_app}'"
+                state.plan.steps[
+                    1
+                ].error = f"Failed to find or focus application window '{target_app}'"
                 state.status = AgentExecutionStatus.FAILED
                 state.error = state.plan.steps[1].error
                 return state
@@ -95,7 +107,10 @@ class ComputerAgent:
         active_win = self.adapter.get_active_window()
         verified = True
         if target_app and active_win:
-            verified = (target_app.lower() in active_win.title.lower() or target_app.lower() in active_win.app_name.lower())
+            verified = (
+                target_app.lower() in active_win.title.lower()
+                or target_app.lower() in active_win.app_name.lower()
+            )
 
         state.plan.steps[3].status = StepStatus.COMPLETED if verified else StepStatus.FAILED
         state.plan.is_complete = verified
@@ -104,7 +119,9 @@ class ComputerAgent:
         state.last_verification = VerificationResult(
             is_verified=verified,
             tool_name="focus_window" if target_app else "desktop_action",
-            details="Active window verified matches requested application." if verified else "Active window mismatch.",
+            details="Active window verified matches requested application."
+            if verified
+            else "Active window mismatch.",
             evidence={"active_window": active_win.model_dump() if active_win else None},
         )
 

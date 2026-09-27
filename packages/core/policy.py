@@ -25,10 +25,7 @@ class PolicyEngine:
 
     @classmethod
     def evaluate_tool_request(
-        cls,
-        tool_spec: ToolSpec,
-        arguments: dict[str, Any],
-        is_user_confirmed: bool = False
+        cls, tool_spec: ToolSpec, arguments: dict[str, Any], is_user_confirmed: bool = False
     ) -> PolicyDecision:
         """Evaluates a tool invocation against risk policies."""
         # 1. Shell command security check
@@ -39,15 +36,37 @@ class PolicyEngine:
                     return PolicyDecision(
                         verdict=PolicyVerdict.DENY,
                         risk_class=RiskClass.HIGH_IMPACT,
-                        reason=f"Forbidden dangerous command pattern detected: {dangerous}"
+                        reason=f"Forbidden dangerous command pattern detected: {dangerous}",
                     )
 
         # 2. Filesystem sandbox & path traversal check
-        if tool_spec.name in ["read_file", "write_file", "delete_file", "edit_code", "apply_code_patch", "inspect_symbol"]:
+        if tool_spec.name in [
+            "read_file",
+            "write_file",
+            "delete_file",
+            "edit_code",
+            "apply_code_patch",
+            "inspect_symbol",
+        ]:
             target_path = str(arguments.get("path") or arguments.get("file_path") or "").lower()
             norm_path = os.path.normpath(target_path)
-            forbidden_system_dirs = ["/etc", "/sys", "/proc", "/root", "/boot", "/dev", "c:\\windows", "c:\\boot", "c:\\recovery", ".git", ".env"]
-            if ".." in norm_path or any(norm_path.startswith(d) or f"/{d}" in norm_path or f"\\{d}" in norm_path for d in forbidden_system_dirs):
+            forbidden_system_dirs = [
+                "/etc",
+                "/sys",
+                "/proc",
+                "/root",
+                "/boot",
+                "/dev",
+                "c:\\windows",
+                "c:\\boot",
+                "c:\\recovery",
+                ".git",
+                ".env",
+            ]
+            if ".." in norm_path or any(
+                norm_path.startswith(d) or f"/{d}" in norm_path or f"\\{d}" in norm_path
+                for d in forbidden_system_dirs
+            ):
                 if not arguments.get("allow_absolute", False):
                     return PolicyDecision(
                         verdict=PolicyVerdict.DENY,
@@ -71,7 +90,7 @@ class PolicyEngine:
             return PolicyDecision(
                 verdict=PolicyVerdict.REQUIRE_USER_CONFIRMATION,
                 risk_class=tool_spec.risk_class,
-                reason=f"Tool '{tool_spec.name}' explicitly requires user confirmation"
+                reason=f"Tool '{tool_spec.name}' explicitly requires user confirmation",
             )
 
         # 4. Handle Risk Classes
@@ -79,14 +98,14 @@ class PolicyEngine:
             return PolicyDecision(
                 verdict=PolicyVerdict.ALLOW,
                 risk_class=RiskClass.READ,
-                reason="Read-only operation auto-approved"
+                reason="Read-only operation auto-approved",
             )
 
         if tool_spec.risk_class == RiskClass.REVERSIBLE_WRITE:
             return PolicyDecision(
                 verdict=PolicyVerdict.ALLOW,
                 risk_class=RiskClass.REVERSIBLE_WRITE,
-                reason="Reversible write operation auto-approved with notification"
+                reason="Reversible write operation auto-approved with notification",
             )
 
         if tool_spec.risk_class in [RiskClass.EXTERNAL_COMMUNICATION, RiskClass.HIGH_IMPACT]:
@@ -94,18 +113,18 @@ class PolicyEngine:
                 return PolicyDecision(
                     verdict=PolicyVerdict.ALLOW,
                     risk_class=tool_spec.risk_class,
-                    reason="User confirmed explicit execution"
+                    reason="User confirmed explicit execution",
                 )
             return PolicyDecision(
                 verdict=PolicyVerdict.REQUIRE_USER_CONFIRMATION,
                 risk_class=tool_spec.risk_class,
-                reason=f"Action classified as {tool_spec.risk_class.value}; requires user approval"
+                reason=f"Action classified as {tool_spec.risk_class.value}; requires user approval",
             )
 
         return PolicyDecision(
             verdict=PolicyVerdict.DENY,
             risk_class=RiskClass.HIGH_IMPACT,
-            reason="Unknown risk class"
+            reason="Unknown risk class",
         )
 
     @classmethod
@@ -116,7 +135,7 @@ class PolicyEngine:
         arguments: dict[str, Any],
         decision: PolicyDecision,
         trace_id: str,
-        execution_success: bool | None = None
+        execution_success: bool | None = None,
     ) -> AuditRecord:
         """Generates an immutable audit trail record."""
         # Hash arguments for privacy preservation while ensuring auditability
@@ -135,5 +154,5 @@ class PolicyEngine:
             verdict=decision.verdict,
             audit_level=tool_spec.audit_level,
             execution_success=execution_success,
-            trace_id=trace_id
+            trace_id=trace_id,
         )

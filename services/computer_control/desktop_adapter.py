@@ -75,14 +75,18 @@ class DesktopAdapter:
                         buff = ctypes.create_unicode_buffer(length + 1)
                         user32.GetWindowTextW(hwnd, buff, length + 1)
                         title = buff.value
-                        if title and not title.startswith("Default IME") and not title.startswith("MSCTFIME UI"):
+                        if (
+                            title
+                            and not title.startswith("Default IME")
+                            and not title.startswith("MSCTFIME UI")
+                        ):
                             # Get window rect
                             rect = wintypes.RECT()
                             user32.GetWindowRect(hwnd, ctypes.byref(rect))
                             w = rect.right - rect.left
                             h = rect.bottom - rect.top
                             if w > 100 and h > 100:
-                                is_active = (hwnd == user32.GetForegroundWindow())
+                                is_active = hwnd == user32.GetForegroundWindow()
                                 windows.append(
                                     WindowState(
                                         window_id=str(hwnd),
@@ -90,7 +94,9 @@ class DesktopAdapter:
                                         app_name="WindowsApp",
                                         is_active=is_active,
                                         is_minimized=bool(user32.IsIconic(hwnd)),
-                                        bounds=WindowBounds(x=rect.left, y=rect.top, width=w, height=h),
+                                        bounds=WindowBounds(
+                                            x=rect.left, y=rect.top, width=w, height=h
+                                        ),
                                     )
                                 )
                 return True
@@ -98,7 +104,9 @@ class DesktopAdapter:
             WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
             user32.EnumWindows(WNDENUMPROC(enum_windows_callback), 0)
         except Exception as err:
-            logger.warning("Failed to enumerate Windows windows natively, falling back to mock: %s", err)
+            logger.warning(
+                "Failed to enumerate Windows windows natively, falling back to mock: %s", err
+            )
             return list(self._mock_windows)
 
         return windows if windows else list(self._mock_windows)
@@ -118,7 +126,11 @@ class DesktopAdapter:
         if self.mock_mode or platform.system() != "Windows":
             found = False
             for win in self._mock_windows:
-                if q_lower in win.title.lower() or q_lower in win.app_name.lower() or q_lower == win.window_id:
+                if (
+                    q_lower in win.title.lower()
+                    or q_lower in win.app_name.lower()
+                    or q_lower == win.window_id
+                ):
                     win.is_active = True
                     win.is_minimized = False
                     found = True
@@ -128,10 +140,15 @@ class DesktopAdapter:
 
         try:
             import ctypes
+
             user32 = ctypes.windll.user32
 
             for win in self.list_windows():
-                if q_lower in win.title.lower() or q_lower in win.app_name.lower() or q_lower == win.window_id:
+                if (
+                    q_lower in win.title.lower()
+                    or q_lower in win.app_name.lower()
+                    or q_lower == win.window_id
+                ):
                     hwnd = int(win.window_id)
                     user32.ShowWindow(hwnd, 9)  # SW_RESTORE
                     user32.SetForegroundWindow(hwnd)
@@ -155,6 +172,7 @@ class DesktopAdapter:
 
         try:
             import tkinter as tk
+
             root = tk.Tk()
             root.withdraw()
             text = root.clipboard_get()
@@ -169,6 +187,7 @@ class DesktopAdapter:
         if not self.mock_mode and platform.system() == "Windows":
             try:
                 import tkinter as tk
+
                 root = tk.Tk()
                 root.withdraw()
                 root.clipboard_clear()

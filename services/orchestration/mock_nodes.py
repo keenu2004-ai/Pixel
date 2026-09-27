@@ -38,7 +38,9 @@ class MockDeviceNode:
         self.role = role
         self.capabilities = capabilities
         self.private_key = secrets.token_bytes(32)
-        self.public_key_pem = f"-----BEGIN PUBLIC KEY-----\n{secrets.token_hex(32)}\n-----END PUBLIC KEY-----"
+        self.public_key_pem = (
+            f"-----BEGIN PUBLIC KEY-----\n{secrets.token_hex(32)}\n-----END PUBLIC KEY-----"
+        )
         self.certificate_pem: str | None = None
         self.root_ca_pem: str | None = None
         self.is_connected = False
@@ -125,7 +127,9 @@ class MockDeviceNode:
 class MockPCNode(MockDeviceNode):
     """Simulated desktop/workstation node with coding and desktop control capabilities."""
 
-    def __init__(self, device_id: str = "pc-workstation-01", device_name: str = "Primary Desktop") -> None:
+    def __init__(
+        self, device_id: str = "pc-workstation-01", device_name: str = "Primary Desktop"
+    ) -> None:
         super().__init__(
             device_id=device_id,
             device_name=device_name,
@@ -145,7 +149,9 @@ class MockPCNode(MockDeviceNode):
 class MockAndroidNode(MockDeviceNode):
     """Simulated Android mobile assistant node with battery and mobile control."""
 
-    def __init__(self, device_id: str = "android-pixel-01", device_name: str = "Pixel 8 Pro") -> None:
+    def __init__(
+        self, device_id: str = "android-pixel-01", device_name: str = "Pixel 8 Pro"
+    ) -> None:
         super().__init__(
             device_id=device_id,
             device_name=device_name,
@@ -165,7 +171,9 @@ class MockAndroidNode(MockDeviceNode):
 class MockSatelliteNode(MockDeviceNode):
     """Simulated lightweight room satellite microphone/speaker node."""
 
-    def __init__(self, device_id: str = "satellite-livingroom-01", device_name: str = "Living Room Satellite") -> None:
+    def __init__(
+        self, device_id: str = "satellite-livingroom-01", device_name: str = "Living Room Satellite"
+    ) -> None:
         super().__init__(
             device_id=device_id,
             device_name=device_name,

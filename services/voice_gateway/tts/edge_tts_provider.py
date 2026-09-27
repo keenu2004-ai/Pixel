@@ -43,6 +43,7 @@ class EdgeTTSProvider(BaseTTSProvider):
         """Checks if edge_tts package is available."""
         try:
             import edge_tts  # noqa: F401
+
             return True
         except ImportError:
             return False

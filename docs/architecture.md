@@ -176,3 +176,60 @@ PIXEL deploys a **Central-Authority Controlled Satellite Topology** with asymmet
 - **Scoped Context Migration**: Strips sensitive credentials, API keys, and bearer tokens (`_sanitize_context`) before replication between trusted, online nodes.
 - **Optimistic Concurrency Leased Task Migration**: Emits cryptographically secure `concurrency_lease_token`s and increments task checkpoint versions, preventing stale updates or split-brain duplicate task runs while strictly preserving pending L6 `ApprovalCard` authorization bindings.
 
+---
+
+## 4. Custom Voice Cloning & Personalized Local Models (Phase 8)
+
+PIXEL decouples biometric voice identity from language intelligence, preserving independent provider layers:
+
+```
+Voice Input (Mic / PCM)
+    │
+    ▼
+STT Provider / VAD
+    │
+    ▼
+Intent / Router Layer (LocalModelRouter)
+    ├── <0.5ms Match ────────► Deterministic Intent Engine
+    └── Complex Request ─────► Quantized Local LLM (4-bit GGUF/AWQ)
+                                   │
+                                   ├─ Tool Requests ─► L6 Policy Gate ─► Tool Registry
+                                   ▼
+                             Response Text
+                                   │
+                                   ▼
+                       Personalized TTS Provider (Indian Prosody & Accent Conditioning)
+                                   │
+                                   ▼
+                       Cloned Voice Output Stream
+```
+
+### 4.1 Speaker Embedding & Verification (`ECAPASpeakerEncoder`)
+- **Multi-Band Spectral Extraction**: Extracts multi-band FFT spectral energies across 192 dimensions, normalized to the unit hypersphere with $L_2$-norm.
+- **Biometric Cosine Similarity**: Computes cosine angle between reference profile embedding and incoming speech, using an experimentally calibrated threshold ($0.82$) with $0.05$ margin.
+- **Signal Quality Gates**: Rejects degraded audio below minimum SNR ($12.0\text{dB}$) or insufficient valid speech duration ($<1.5\text{s}$).
+
+### 4.2 Biometric Consent & Profile Management (`VoiceEnrollmentManager`)
+- **Explicit Consent Tokens**: Enrollment strictly requires cryptographically structured consent tokens (`CONSENT_GRANTED_FOR_PERSONAL_VOICE_CLONING_V1`).
+- **Zero Raw Audio Retention**: Raw WAV recordings are analyzed in-memory to generate speaker embeddings and then immediately destroyed. Only mathematical embeddings and anonymized acoustic parameters are stored.
+
+### 4.3 Personalized Indian-Accent Synthesis (`PersonalizedTTSProvider`)
+- **Acoustic Conditioning**: Synthesizes speech conditioned on mathematical `SpeakerProfile` vectors with customizable pitch scale, speaking rate, and breathiness.
+- **Indian & Hinglish Prosody Modulation**: Native linguistic modulation for Indian English, Devanagari Hindi, and mixed-code Hinglish with natural transitions between Indic phonemes and English technical vocabulary.
+- **Streaming Audio Chunks**: Generates incremental PCM audio chunks with cancellation and barge-in support.
+
+### 4.4 4-Bit Quantized Local LLM Engine (`QuantizedLocalLLM`)
+- **Model Family Support**: Optimized inference for Qwen2.5 (0.5B/1.5B/7B) and Llama-3.2 (1B/3B) architectures in 4-bit (AWQ/GGUF/BitsAndBytes) formats.
+- **Structured Tool Call Parsing**: Intercepts native model tool calling formats and converts them into standardized PIXEL `ToolCall` contracts.
+- **Zero Security Bypass**: Local LLMs operate under the same strict L6 `AgentPolicyGate` and L8 verification rules as remote models.
+
+### 4.5 Hardware Resource Manager (`ModelResourceManager`)
+- **VRAM / RAM Governors**: Tracks hardware resource consumption and enforces strict capacity limits (e.g. 8192MB ceiling).
+- **FIFO Model Eviction**: Automatically unloads idle models when new models require memory allocation.
+- **Cryptographic SHA-256 Integrity**: Validates model file checksums prior to loading to prevent malicious payload execution.
+
+### 4.6 Hybrid Local-First Model Router (`LocalModelRouter`)
+- **Preserved Fast-Path Intent**: Fast-path deterministic requests resolve in $<0.5\text{ms}$ with zero LLM token consumption.
+- **Policy-Gated Remote Fallback**: Fallback to remote LLMs when local resources are exhausted requires explicit policy permission (`allow_remote_fallback=True`) to prevent silent exfiltration of private context.
+
+

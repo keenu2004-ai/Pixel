@@ -42,7 +42,9 @@ class SQLiteCheckpointer(BaseCheckpointer):
                     created_at TEXT NOT NULL
                 )
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_checkpoints_task ON pixel_agent_checkpoints(task_id, created_at)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_checkpoints_task ON pixel_agent_checkpoints(task_id, created_at)"
+            )
             conn.commit()
 
     async def save_checkpoint(self, state: AgentState, version: int = CURRENT_VERSION) -> str:
@@ -70,7 +72,12 @@ class SQLiteCheckpointer(BaseCheckpointer):
             )
             conn.commit()
 
-        logger.debug("Saved agent checkpoint %s for task %s (status: %s)", checkpoint_id, state.task_id, state.status)
+        logger.debug(
+            "Saved agent checkpoint %s for task %s (status: %s)",
+            checkpoint_id,
+            state.task_id,
+            state.status,
+        )
         return checkpoint_id
 
     async def get_latest_checkpoint(self, task_id: str) -> AgentState | None:
@@ -90,7 +97,12 @@ class SQLiteCheckpointer(BaseCheckpointer):
             raw_json = row["state_json"]
             version = row["version"]
             if version > self.CURRENT_VERSION:
-                logger.warning("Checkpoint version %d is newer than supported %d for task %s", version, self.CURRENT_VERSION, task_id)
+                logger.warning(
+                    "Checkpoint version %d is newer than supported %d for task %s",
+                    version,
+                    self.CURRENT_VERSION,
+                    task_id,
+                )
 
             data = json.loads(raw_json)
             return AgentState.model_validate(data)

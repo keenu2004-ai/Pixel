@@ -65,8 +65,12 @@ class SQLiteRAGStore:
                     created_at TEXT NOT NULL
                 )
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_rag_doc ON pixel_rag_chunks(document_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_rag_hash ON pixel_rag_chunks(chunk_hash)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_rag_doc ON pixel_rag_chunks(document_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_rag_hash ON pixel_rag_chunks(chunk_hash)"
+            )
             conn.commit()
 
     async def add_chunks(self, chunks: list[DocumentChunk]) -> int:

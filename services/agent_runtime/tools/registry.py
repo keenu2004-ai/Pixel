@@ -40,7 +40,9 @@ class ToolRegistry:
         """Returns all registered tool specifications."""
         return [t.spec for t in self._tools.values()]
 
-    def validate_arguments(self, tool_name: str, arguments: dict[str, Any]) -> tuple[bool, str | None]:
+    def validate_arguments(
+        self, tool_name: str, arguments: dict[str, Any]
+    ) -> tuple[bool, str | None]:
         """Validates tool arguments against parameters_schema."""
         tool = self.get_tool(tool_name)
         if not tool:

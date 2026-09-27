@@ -19,7 +19,9 @@ class RAGRetriever:
         db_path: str = "data/persistence/pixel_rag.db",
         embedding_provider: BaseEmbeddingProvider | None = None,
     ) -> None:
-        self.rag_store = rag_store or SQLiteRAGStore(db_path=db_path, embedding_provider=embedding_provider)
+        self.rag_store = rag_store or SQLiteRAGStore(
+            db_path=db_path, embedding_provider=embedding_provider
+        )
         self.indexer = DocumentIndexer(rag_store=self.rag_store)
 
     async def index_text(
@@ -30,7 +32,9 @@ class RAGRetriever:
     ) -> int:
         """Indexes an in-memory document or code snippet."""
         chunk_type = ChunkType.CODE_AST if is_code else ChunkType.TEXT_PARAGRAPH
-        return await self.indexer.index_text(text=text, source_uri=source_uri, chunk_type=chunk_type)
+        return await self.indexer.index_text(
+            text=text, source_uri=source_uri, chunk_type=chunk_type
+        )
 
     async def retrieve(
         self,

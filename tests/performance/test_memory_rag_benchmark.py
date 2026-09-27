@@ -51,19 +51,24 @@ async def test_memory_and_rag_performance_benchmarks() -> None:
     # 3. Benchmark Episodic Search (50 queries)
     start_time = time.perf_counter()
     for _ in range(50):
-        await store.search_episodic(query="software architecture interaction", user_id="bench_user", limit=3)
+        await store.search_episodic(
+            query="software architecture interaction", user_id="bench_user", limit=3
+        )
     ep_search_total_ms = (time.perf_counter() - start_time) * 1000
     avg_ep_search_ms = ep_search_total_ms / 50
 
     # 4. Benchmark AST Python Code Chunking (500-line sample)
-    sample_code = """
+    sample_code = (
+        """
 class CorePipeline:
     def __init__(self, name: str) -> None:
         self.name = name
 
     def execute(self, task_id: int) -> bool:
         return task_id > 0
-""" * 50
+"""
+        * 50
+    )
     start_time = time.perf_counter()
     for _ in range(20):
         ast_chunker.chunk_text(sample_code, source_uri="bench/core.py")
@@ -71,7 +76,10 @@ class CorePipeline:
     avg_ast_chunk_ms = ast_total_ms / 20
 
     # 5. Benchmark RAG Ingestion and Hybrid Retrieval
-    doc = "# Architecture Guide\nPIXEL provides low latency voice perception and autonomous tool dispatch.\n" * 10
+    doc = (
+        "# Architecture Guide\nPIXEL provides low latency voice perception and autonomous tool dispatch.\n"
+        * 10
+    )
     await retriever.index_text(doc, source_uri="docs/guide.md")
 
     start_time = time.perf_counter()
@@ -89,6 +97,6 @@ class CorePipeline:
 
     # SLA Assertions
     assert avg_fact_write_ms < 50.0  # < 50ms
-    assert avg_ep_search_ms < 50.0   # < 50ms
+    assert avg_ep_search_ms < 50.0  # < 50ms
     assert avg_ast_chunk_ms < 100.0  # < 100ms
     assert avg_rag_query_ms < 100.0  # < 100ms

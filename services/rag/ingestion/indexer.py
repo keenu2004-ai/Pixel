@@ -32,7 +32,9 @@ class DocumentIndexer:
         doc_id = document_id or f"doc_{uuid4().hex[:8]}"
 
         if chunk_type == ChunkType.CODE_AST or source_uri.endswith(".py"):
-            chunks = ASTCodeChunker.chunk_python_code(text, source_uri=source_uri, document_id=doc_id)
+            chunks = ASTCodeChunker.chunk_python_code(
+                text, source_uri=source_uri, document_id=doc_id
+            )
         else:
             chunks = MarkdownChunker.chunk_markdown(text, source_uri=source_uri, document_id=doc_id)
 
@@ -53,13 +55,19 @@ class DocumentIndexer:
             return 0
 
         if path.suffix == ".py":
-            chunks = ASTCodeChunker.chunk_python_code(content, source_uri=str(path), document_id=doc_id)
+            chunks = ASTCodeChunker.chunk_python_code(
+                content, source_uri=str(path), document_id=doc_id
+            )
         else:
-            chunks = MarkdownChunker.chunk_markdown(content, source_uri=str(path), document_id=doc_id)
+            chunks = MarkdownChunker.chunk_markdown(
+                content, source_uri=str(path), document_id=doc_id
+            )
 
         return await self.rag_store.add_chunks(chunks)
 
-    async def index_directory(self, dir_path: str | Path, extensions: tuple[str, ...] = (".py", ".md", ".txt")) -> int:
+    async def index_directory(
+        self, dir_path: str | Path, extensions: tuple[str, ...] = (".py", ".md", ".txt")
+    ) -> int:
         """Indexes all matching files in a directory."""
         path = Path(dir_path)
         if not path.exists() or not path.is_dir():

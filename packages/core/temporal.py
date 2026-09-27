@@ -14,51 +14,60 @@ class TemporalResolver:
     DAY_OFFSETS: dict[str, int] = {
         "aaj": 0,
         "today": 0,
-        "kal": 1,         # tomorrow
+        "kal": 1,  # tomorrow
         "tomorrow": 1,
-        "parso": 2,       # day after tomorrow
+        "parso": 2,  # day after tomorrow
         "narso": 3,
     }
 
     # Time of day default fallback hours
     TIME_OF_DAY_DEFAULTS: dict[str, tuple[int, int]] = {
-        "subah": (7, 0),     # Morning default: 7:00 AM
+        "subah": (7, 0),  # Morning default: 7:00 AM
         "morning": (7, 0),
         "dopahar": (13, 0),  # Afternoon default: 1:00 PM
         "afternoon": (13, 0),
-        "shaam": (18, 0),    # Evening default: 6:00 PM
+        "shaam": (18, 0),  # Evening default: 6:00 PM
         "evening": (18, 0),
-        "raat": (21, 0),     # Night default: 9:00 PM
+        "raat": (21, 0),  # Night default: 9:00 PM
         "night": (21, 0),
     }
 
     WEEKDAYS: dict[str, int] = {
-        "somwar": 0, "monday": 0,
-        "mangalwar": 1, "tuesday": 1,
-        "budhwar": 2, "wednesday": 2,
-        "guruwar": 3, "brihaspatiwar": 3, "thursday": 3,
-        "shukrawar": 4, "friday": 4,
-        "shaniwar": 5, "saturday": 5,
-        "raviwar": 6, "itwar": 6, "sunday": 6,
+        "somwar": 0,
+        "monday": 0,
+        "mangalwar": 1,
+        "tuesday": 1,
+        "budhwar": 2,
+        "wednesday": 2,
+        "guruwar": 3,
+        "brihaspatiwar": 3,
+        "thursday": 3,
+        "shukrawar": 4,
+        "friday": 4,
+        "shaniwar": 5,
+        "saturday": 5,
+        "raviwar": 6,
+        "itwar": 6,
+        "sunday": 6,
     }
 
     @classmethod
-    def resolve_datetime(
-        cls,
-        text: str,
-        reference_time: datetime | None = None
-    ) -> datetime | None:
+    def resolve_datetime(cls, text: str, reference_time: datetime | None = None) -> datetime | None:
         """Parses an utterance and returns the normalized datetime."""
         base_time = reference_time or datetime.now()
         normalized = text.lower().strip()
 
         # Check 1: "in X minutes / in X hours" / "X minute baad"
-        rel_min_match = re.search(r"(?:in\s+)?(\d+)\s*(?:mins?|minutes?|minute)\s*(?:baad|me|mein)?", normalized)
+        rel_min_match = re.search(
+            r"(?:in\s+)?(\d+)\s*(?:mins?|minutes?|minute)\s*(?:baad|me|mein)?", normalized
+        )
         if rel_min_match:
             mins = int(rel_min_match.group(1))
             return base_time + timedelta(minutes=mins)
 
-        rel_hr_match = re.search(r"(?:in\s+)?(\d+)\s*(?:hours?|hrs?|ghante)\s*(?:baad|me|mein)?", normalized)
+        rel_hr_match = re.search(
+            r"(?:in\s+)?(\d+)\s*(?:hours?|hrs?|ghante)\s*(?:baad|me|mein)?", normalized
+        )
         if rel_hr_match:
             hrs = int(rel_hr_match.group(1))
             return base_time + timedelta(hours=hrs)
@@ -88,7 +97,7 @@ class TemporalResolver:
         # Check 4: Exact hour & minute ("7 baje", "7:30", "7 am", "subah 7 baje", "shaam 6 baje")
         time_match = re.search(
             r"(?:(subah|shaam|dopahar|raat|morning|evening|night)\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm|baje)?",
-            normalized
+            normalized,
         )
 
         if time_match:

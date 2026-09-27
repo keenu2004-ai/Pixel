@@ -15,6 +15,7 @@ class Environment(StrEnum):
 
 class PixelConfig(BaseModel):
     """Immutable runtime configuration parsed from environment variables."""
+
     env: Environment = Field(default=Environment.DEVELOPMENT)
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000, ge=1024, le=65535)
@@ -54,13 +55,17 @@ class PixelConfig(BaseModel):
             host=os.getenv("PIXEL_HOST", "127.0.0.1"),
             port=port,
             log_level=os.getenv("PIXEL_LOG_LEVEL", "INFO").upper(),
-            secret_key=os.getenv("PIXEL_SECRET_KEY", "dev-insecure-secret-key-replace-in-production"),
+            secret_key=os.getenv(
+                "PIXEL_SECRET_KEY", "dev-insecure-secret-key-replace-in-production"
+            ),
             database_url=os.getenv("PIXEL_DATABASE_URL", "sqlite+aiosqlite:///./data/pixel.db"),
             redis_url=os.getenv("PIXEL_REDIS_URL", "redis://localhost:6379/0"),
             vad_mode=os.getenv("PIXEL_VAD_MODE", "silero"),
             stt_provider=os.getenv("PIXEL_STT_PROVIDER", "faster-whisper"),
             tts_provider=os.getenv("PIXEL_TTS_PROVIDER", "kokoro"),
             default_language=os.getenv("PIXEL_DEFAULT_LANGUAGE", "hi-Latn"),
-            strict_sandbox=os.getenv("PIXEL_STRICT_SANDBOX", "true").lower() in ["1", "true", "yes"],
-            allow_network_tools=os.getenv("PIXEL_ALLOW_NETWORK_TOOLS", "false").lower() in ["1", "true", "yes"],
+            strict_sandbox=os.getenv("PIXEL_STRICT_SANDBOX", "true").lower()
+            in ["1", "true", "yes"],
+            allow_network_tools=os.getenv("PIXEL_ALLOW_NETWORK_TOOLS", "false").lower()
+            in ["1", "true", "yes"],
         )

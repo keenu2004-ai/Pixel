@@ -19,11 +19,12 @@ SILERO_V5_OFFICIAL_SHA256 = "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174
 
 class SileroModelIntegrityError(PixelException):
     """Raised when Silero model weights fail file verification or checksum."""
+
     def __init__(self, message: str) -> None:
         super().__init__(
             message=message,
             category=ErrorCategory.PROVIDER_ERROR,
-            code="SILERO_MODEL_INTEGRITY_FAILURE"
+            code="SILERO_MODEL_INTEGRITY_FAILURE",
         )
 
 
@@ -37,9 +38,9 @@ class SileroVADConfig:
         threshold: float = 0.5,
         neg_threshold: float = 0.35,
         sample_rate: int = 16000,
-        min_speech_duration_ms: int = 64,    # ~2 frames @ 32ms
-        min_silence_duration_ms: int = 300,   # ~10 frames @ 32ms
-        window_size_samples: int = 512,       # 32ms @ 16kHz
+        min_speech_duration_ms: int = 64,  # ~2 frames @ 32ms
+        min_silence_duration_ms: int = 300,  # ~10 frames @ 32ms
+        window_size_samples: int = 512,  # 32ms @ 16kHz
     ) -> None:
         self.model_path = model_path
         self.expected_sha256 = expected_sha256
@@ -85,6 +86,7 @@ class SileroVADProvider(BaseVADProvider):
             return False
         try:
             import onnxruntime  # noqa: F401
+
             return True
         except ImportError:
             return False
@@ -125,9 +127,7 @@ class SileroVADProvider(BaseVADProvider):
 
             # Use CPUExecutionProvider exclusively for lightweight, deterministic execution
             self._session = ort.InferenceSession(
-                self.config.model_path,
-                sess_options=opts,
-                providers=["CPUExecutionProvider"]
+                self.config.model_path, sess_options=opts, providers=["CPUExecutionProvider"]
             )
             self._initialized = True
             logger.info("Silero ONNX VAD session initialized successfully.")
@@ -136,14 +136,14 @@ class SileroVADProvider(BaseVADProvider):
             raise PixelException(
                 message="onnxruntime is required for SileroVADProvider. Install with 'pip install onnxruntime'.",
                 category=ErrorCategory.PROVIDER_ERROR,
-                code="ONNXRUNTIME_MISSING"
+                code="ONNXRUNTIME_MISSING",
             ) from err
         except Exception as err:
             self._initialization_error = str(err)
             raise PixelException(
                 message=f"Failed to load Silero ONNX model: {err}",
                 category=ErrorCategory.PROVIDER_ERROR,
-                code="SILERO_LOAD_FAILURE"
+                code="SILERO_LOAD_FAILURE",
             ) from err
 
     def _get_or_create_session_state(self, session_id: str) -> _SessionState:
@@ -172,7 +172,7 @@ class SileroVADProvider(BaseVADProvider):
             raise PixelException(
                 message="Silero VAD session is not initialized",
                 category=ErrorCategory.PROVIDER_ERROR,
-                code="SILERO_SESSION_NULL"
+                code="SILERO_SESSION_NULL",
             )
 
         # 1. Convert PCM int16 bytes to normalized float32 array (-1.0 to 1.0)
@@ -197,7 +197,7 @@ class SileroVADProvider(BaseVADProvider):
                 session_id=session_id,
                 state=vad_state,
                 speech_probability=0.0,
-                energy_level_db=-60.0
+                energy_level_db=-60.0,
             )
 
         # Slice into window_size chunks
@@ -207,11 +207,7 @@ class SileroVADProvider(BaseVADProvider):
                 chunk = np.pad(chunk, (0, window_size - len(chunk)))
 
             input_tensor = np.expand_dims(chunk, axis=0)
-            ort_inputs = {
-                "input": input_tensor,
-                "state": sess_state.state,
-                "sr": sr_tensor
-            }
+            ort_inputs = {"input": input_tensor, "state": sess_state.state, "sr": sr_tensor}
             ort_outputs = self._session.run(None, ort_inputs)
             chunk_prob = float(np.array(ort_outputs[0]).flatten()[0])
             sess_state.state = ort_outputs[1]  # Update recurrent state tensor
@@ -224,7 +220,7 @@ class SileroVADProvider(BaseVADProvider):
             session_id=session_id,
             state=vad_state,
             speech_probability=speech_prob,
-            energy_level_db=energy_db
+            energy_level_db=energy_db,
         )
 
     def _evaluate_transitions(self, state: _SessionState, speech_prob: float) -> VADState:

@@ -29,7 +29,9 @@ async def test_mobile_registration_handshake_latency() -> None:
 
     avg_latency = sum(latencies) / len(latencies)
     assert res.success is True
-    assert avg_latency < 5.0, f"Registration latency too high: {avg_latency:.4f}ms (must be < 5.0ms)"
+    assert avg_latency < 5.0, (
+        f"Registration latency too high: {avg_latency:.4f}ms (must be < 5.0ms)"
+    )
 
 
 @pytest.mark.asyncio
@@ -48,7 +50,9 @@ async def test_mobile_audio_dispatch_latency() -> None:
 
     avg_latency = sum(latencies) / len(latencies)
     assert res["status"] == "processed"
-    assert avg_latency < 2.0, f"Audio dispatch latency too high: {avg_latency:.4f}ms (must be < 2.0ms)"
+    assert avg_latency < 2.0, (
+        f"Audio dispatch latency too high: {avg_latency:.4f}ms (must be < 2.0ms)"
+    )
 
 
 def test_deterministic_fast_path_zero_regression_phase6() -> None:
@@ -65,5 +69,7 @@ def test_deterministic_fast_path_zero_regression_phase6() -> None:
         latencies.append((time.perf_counter() - start) * 1000)
 
     avg_latency = sum(latencies) / len(latencies)
-    assert avg_latency < 0.5, f"Fast path latency regressed in Phase 6: {avg_latency:.4f}ms (must be < 0.5ms)"
+    assert avg_latency < 0.5, (
+        f"Fast path latency regressed in Phase 6: {avg_latency:.4f}ms (must be < 0.5ms)"
+    )
     assert res is not None
