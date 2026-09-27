@@ -8,6 +8,21 @@ from packages.contracts.agent import (
     TaskPlan,
     VerificationResult,
 )
+from packages.contracts.coding import (
+    PatchResult,
+    SymbolDefinition,
+    SymbolKind,
+    SymbolLocation,
+    SymbolReference,
+    TestExecutionResult,
+    TestFailureDetail,
+)
+from packages.contracts.computer import (
+    ClipboardData,
+    ScreenshotPayload,
+    WindowBounds,
+    WindowState,
+)
 from packages.contracts.errors import (
     ErrorCategory,
     ErrorPayload,
@@ -75,4 +90,15 @@ __all__ = [
     "VerificationResult",
     "AgentState",
     "AgentCheckpoint",
+    "SymbolKind",
+    "SymbolLocation",
+    "SymbolDefinition",
+    "SymbolReference",
+    "PatchResult",
+    "TestFailureDetail",
+    "TestExecutionResult",
+    "WindowBounds",
+    "WindowState",
+    "ScreenshotPayload",
+    "ClipboardData",
 ]

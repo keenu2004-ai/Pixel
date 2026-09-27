@@ -43,16 +43,27 @@ class PolicyEngine:
                     )
 
         # 2. Filesystem sandbox & path traversal check
-        if tool_spec.name in ["read_file", "write_file", "delete_file", "edit_code"]:
-            target_path = str(arguments.get("path", "")).lower()
+        if tool_spec.name in ["read_file", "write_file", "delete_file", "edit_code", "apply_code_patch", "inspect_symbol"]:
+            target_path = str(arguments.get("path") or arguments.get("file_path") or "").lower()
             norm_path = os.path.normpath(target_path)
-            forbidden_system_dirs = ["/etc", "/sys", "/proc", "/root", "/boot", "/dev", "c:\\windows", "c:\\boot", "c:\\recovery"]
-            if ".." in norm_path or any(norm_path.startswith(d) for d in forbidden_system_dirs):
+            forbidden_system_dirs = ["/etc", "/sys", "/proc", "/root", "/boot", "/dev", "c:\\windows", "c:\\boot", "c:\\recovery", ".git", ".env"]
+            if ".." in norm_path or any(norm_path.startswith(d) or f"/{d}" in norm_path or f"\\{d}" in norm_path for d in forbidden_system_dirs):
                 if not arguments.get("allow_absolute", False):
                     return PolicyDecision(
                         verdict=PolicyVerdict.DENY,
                         risk_class=RiskClass.HIGH_IMPACT,
                         reason="Path traversal or unauthorized path outside sandbox detected",
+                    )
+
+            # High-impact diff threshold check for code patching (> 50 lines modified)
+            if tool_spec.name == "apply_code_patch":
+                new_content = str(arguments.get("new_content", ""))
+                line_count = len(new_content.splitlines())
+                if line_count > 50 and not is_user_confirmed:
+                    return PolicyDecision(
+                        verdict=PolicyVerdict.REQUIRE_USER_CONFIRMATION,
+                        risk_class=RiskClass.HIGH_IMPACT,
+                        reason=f"Code modification exceeds 50 lines threshold ({line_count} lines); requires explicit confirmation",
                     )
 
         # 3. Handle explicit tool requirement for approval

@@ -27,6 +27,25 @@ from services.agent_runtime.tools.builtin import (
     WriteFileTool,
 )
 from services.agent_runtime.tools.registry import ToolRegistry
+from services.coding.serena_bridge import SerenaBridge
+from services.coding.test_runner import IsolatedTestRunner
+from services.coding.tools import (
+    ApplyCodePatchTool,
+    FindReferencesTool,
+    InspectSymbolTool,
+    RollbackCodePatchTool,
+    RunTestsTool,
+    SemanticCodeSearchTool,
+)
+from services.computer_control.desktop_adapter import DesktopAdapter
+from services.computer_control.tools import (
+    CaptureWindowTool,
+    FocusWindowTool,
+    GetActiveWindowTool,
+    ListWindowsTool,
+    ReadClipboardTool,
+    WriteClipboardTool,
+)
 from services.memory.manager import MemoryManager
 from services.os_control.mock_adapter import MockOSAdapter
 from services.rag.retriever import RAGRetriever
@@ -45,12 +64,22 @@ class AgentRuntimeEngine:
         memory_manager: MemoryManager | None = None,
         rag_retriever: RAGRetriever | None = None,
         os_adapter: BaseOSAdapter | None = None,
+        serena_bridge: SerenaBridge | None = None,
+        test_runner: IsolatedTestRunner | None = None,
+        desktop_adapter: DesktopAdapter | None = None,
     ) -> None:
         self.os_adapter = os_adapter or MockOSAdapter()
+        self.serena_bridge = serena_bridge or SerenaBridge()
+        self.test_runner = test_runner or IsolatedTestRunner()
+        self.desktop_adapter = desktop_adapter or DesktopAdapter()
+
         self.tool_registry = tool_registry or self._create_default_registry(
             os_adapter=self.os_adapter,
             memory_manager=memory_manager,
             rag_retriever=rag_retriever,
+            serena_bridge=self.serena_bridge,
+            test_runner=self.test_runner,
+            desktop_adapter=self.desktop_adapter,
         )
         self.policy_gate = policy_gate or AgentPolicyGate()
         self.checkpointer = checkpointer or SQLiteCheckpointer()
@@ -70,6 +99,9 @@ class AgentRuntimeEngine:
         os_adapter: BaseOSAdapter,
         memory_manager: MemoryManager | None = None,
         rag_retriever: RAGRetriever | None = None,
+        serena_bridge: SerenaBridge | None = None,
+        test_runner: IsolatedTestRunner | None = None,
+        desktop_adapter: DesktopAdapter | None = None,
     ) -> ToolRegistry:
         registry = ToolRegistry()
         # Filesystem
@@ -85,6 +117,23 @@ class AgentRuntimeEngine:
             registry.register_tool(QueryMemoryTool(memory_manager=memory_manager))
         if rag_retriever:
             registry.register_tool(SearchKnowledgeTool(rag_retriever=rag_retriever))
+        # Phase 5: Semantic Coding Tools
+        s_bridge = serena_bridge or SerenaBridge()
+        t_runner = test_runner or IsolatedTestRunner()
+        registry.register_tool(SemanticCodeSearchTool(bridge=s_bridge))
+        registry.register_tool(InspectSymbolTool(bridge=s_bridge))
+        registry.register_tool(FindReferencesTool(bridge=s_bridge))
+        registry.register_tool(ApplyCodePatchTool(bridge=s_bridge))
+        registry.register_tool(RollbackCodePatchTool(bridge=s_bridge))
+        registry.register_tool(RunTestsTool(runner=t_runner))
+        # Phase 5: Desktop / Computer Control Tools
+        d_adapter = desktop_adapter or DesktopAdapter()
+        registry.register_tool(ListWindowsTool(adapter=d_adapter))
+        registry.register_tool(GetActiveWindowTool(adapter=d_adapter))
+        registry.register_tool(FocusWindowTool(adapter=d_adapter))
+        registry.register_tool(ReadClipboardTool(adapter=d_adapter))
+        registry.register_tool(WriteClipboardTool(adapter=d_adapter))
+        registry.register_tool(CaptureWindowTool(adapter=d_adapter))
 
         return registry
 
