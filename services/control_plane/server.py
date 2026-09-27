@@ -21,11 +21,16 @@ from services.control_plane.routers import (
     connectors_router,
     conversations_router,
     devices_router,
+    diagnostics_router,
+    evolution_models_router,
+    killswitches_router,
     marketplace_router,
     memory_router,
     overview_router,
     plugins_router,
+    proposals_router,
     scheduler_router,
+    swarms_router,
     tasks_router,
     ws_router,
 )
@@ -118,6 +123,11 @@ def create_control_plane_app(
     app.include_router(marketplace_router)
     app.include_router(backups_router)
     app.include_router(connectors_router)
+    app.include_router(swarms_router)
+    app.include_router(diagnostics_router)
+    app.include_router(proposals_router)
+    app.include_router(evolution_models_router)
+    app.include_router(killswitches_router)
     app.include_router(audit_router)
     app.include_router(ws_router)
 

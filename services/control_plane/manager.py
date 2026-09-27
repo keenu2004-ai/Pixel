@@ -165,10 +165,54 @@ class ControlPlaneManager:
         )
         self.webhook_engine.start()
 
-        # 7. Active Conversation Sessions Tracking
+        # 7. Continuous Autonomous Evolution & Self-Healing Swarms (Phase 12)
+        from services.evolution import (
+            ChangeProposalManager,
+            DatasetLineageTracker,
+            DiagnosticEngine,
+            DifferentialPrivacyAccountant,
+            EvolutionGovernor,
+            EvolutionModelRegistry,
+            KillSwitchSystem,
+            MemoryMeshReplicator,
+            ModelSafetyEvaluator,
+            ProgressiveDistillationEngine,
+            RegressionTestGenerator,
+            RuntimeSelfProfiler,
+            SelfHealingOrchestrator,
+            SwarmCoordinator,
+        )
+
+        self.runtime_profiler = RuntimeSelfProfiler()
+        self.diagnostic_engine = DiagnosticEngine(profiler=self.runtime_profiler)
+        self.proposal_manager = ChangeProposalManager(db_path="data/persistence/pixel_proposals.db")
+        self.regression_generator = RegressionTestGenerator()
+        self.self_healing = SelfHealingOrchestrator(
+            proposal_manager=self.proposal_manager,
+            policy_gate=self.policy_gate,
+            action_verifier=self.action_verifier,
+            regression_generator=self.regression_generator,
+        )
+        self.memory_mesh = MemoryMeshReplicator(node_id="primary_desktop_core")
+        self.lineage_tracker = DatasetLineageTracker()
+        self.dp_accountant = DifferentialPrivacyAccountant()
+        self.model_evaluator = ModelSafetyEvaluator()
+        self.distillation_engine = ProgressiveDistillationEngine()
+        self.model_registry = EvolutionModelRegistry(evaluator=self.model_evaluator)
+        self.kill_switches = KillSwitchSystem(db_path="data/persistence/pixel_killswitches.db")
+        self.evolution_governor = EvolutionGovernor(
+            kill_switch_system=self.kill_switches,
+            policy_gate=self.policy_gate,
+        )
+        self.swarm_coordinator = SwarmCoordinator(
+            policy_gate=self.policy_gate,
+            action_verifier=self.action_verifier,
+        )
+
+        # 8. Active Conversation Sessions Tracking
         self._active_sessions: dict[str, ConversationSessionView] = {}
 
-        # 8. WebSocket Subscriber Queues
+        # 9. WebSocket Subscriber Queues
         self._ws_subscribers: set[asyncio.Queue[ControlPlaneStreamEvent]] = set()
 
         # Seed initial core desktop identity if registry is empty

@@ -56,8 +56,21 @@ The Control Plane exposes real-time administrative telemetry via `/ws/control-pl
 | `pixel.ecosystem.active_plugins` | Gauge | Monitored | Number of currently enabled third-party plugins |
 | `pixel.ecosystem.active_connectors` | Gauge | Monitored | Number of active enterprise connectors |
 
-### 4.1 Ecosystem Audit Trails
-- **Plugin Ledger (`pixel_plugins.db`)**: Records state transitions (`INSTALLED`, `ENABLED`, `DISABLED`, `REVOKED`, `QUARANTINED`), permission grants, and emergency revocation events.
-- **Backup Registry (`pixel_backups.db`)**: Records encrypted envelope revisions, scopes, checksums, and restoration timestamps.
-- **Connector Registry (`pixel_connectors.db`)**: Records connector registrations, outbound webhook deliveries, status codes, and SSRF violation rejections.
+---
+
+## 5. Continuous Autonomous Evolution & Swarm Observability (Phase 12)
+
+| Metric Name | Type | Target Threshold | Description |
+| :--- | :--- | :--- | :--- |
+| `pixel.swarm.leader_election_ms` | Histogram | $< 10\text{ms}$ (P95) | Dynamic leader election and lease acquisition latency |
+| `pixel.swarm.consensus_latency_ms` | Histogram | $< 25\text{ms}$ (P95) | Multi-stage proposal voting, tallying, and L6 policy check |
+| `pixel.mesh.sync_latency_ms` | Histogram | $< 15\text{ms}$ (P95) | Vector clock resolution and replication envelope merge |
+| `pixel.evolution.dp_epsilon_consumed` | Gauge | Monitored | Cumulative differential privacy epsilon budget utilization |
+| `pixel.evolution.active_swarms` | Gauge | Monitored | Number of active collaborative swarm sessions |
+| `pixel.evolution.tripped_killswitches` | Gauge | Monitored | Number of active emergency shutdown trip switches |
+
+### 5.1 Evolution Audit & Proposal Trails
+- **Proposal Ledger (`pixel_proposals.db`)**: Records change proposal state machine transitions (`PROPOSED`, `ANALYZED`, `TESTING`, `VERIFIED`, `CANARY`, `APPROVED`, `PROMOTED`, `ROLLED_BACK`), diffs, canary percentages, and regression test codes.
+- **Kill Switch Ledger (`pixel_killswitches.db`)**: Append-only log of emergency kill switch activation, actor IDs, timestamps, and justifications.
+
 

@@ -333,6 +333,58 @@ PIXEL enables safe, untrusted third-party extensibility through layered capabili
 - **Loop Prevention**: Dedicated event tracking with `MAX_HOP_COUNT = 3` and delivery deduplication.
 - **Supported Connectors**: Slack Webhooks, Discord Webhooks, Home Assistant REST (with L6 physical actuation protection), and Matrix Client-Server API.
 
+---
+
+## 7. Continuous Autonomous Evolution & Self-Healing Swarms (Phase 12)
+
+PIXEL implements a bounded, observable, and policy-governed autonomous evolution layer operating strictly above the existing safety architecture:
+
+```
+[ Telemetry & Profiler (RuntimeSelfProfiler) ]
+                    │
+                    ▼
+[ Diagnostic Engine (Anomalies & Explainable Hypotheses) ]
+                    │
+                    ▼
+[ Self-Healing Orchestrator & Remediation Allowlist ]
+                    │
+    ┌───────────────┴───────────────┐
+    ▼                               ▼
+[ Automatic Remediation ]    [ Change Proposal & Regression Generator ]
+    │ (Safe Class)                  │ (AST Safety Verification)
+    ▼                               ▼
+[ L6 Policy Gate ]          [ Canary Staging & Approval Queue ]
+    │                               │
+    ▼                               ▼
+[ Execution & L8 Verification ] [ Safe Promotion / Auto-Rollback ]
+```
+
+### 7.1 Multi-Agent Collaborative Swarms & Consensus
+- **Swarm Coordination (`SwarmCoordinator`)**: Coordinates task partitioning, agent role allocation, and finite step/token execution budgets across multi-agent swarms.
+- **Dynamic Leader Election (`LeaderElection`)**: Epoch-based leadership leases with heartbeat renewals, automatic leader timeout failovers, and split-brain defense.
+- **Hierarchical Consensus (`HierarchicalConsensusEngine`)**: Multi-stage proposal lifecycle (Proposal $\rightarrow$ Role Review $\rightarrow$ Cross-Agent Review $\rightarrow$ Voting $\rightarrow$ Consensus) subordinated to canonical L6 `AgentPolicyGate` and L8 `ActionVerifier`.
+
+### 7.2 Continuous Self-Profiling & Diagnostic Engine
+- **Observation-First Profiling (`RuntimeSelfProfiler`)**: Bounded in-memory telemetry buffers tracking latency, memory, error rates, and sync lag.
+- **Explainable Anomaly Diagnostics (`DiagnosticEngine`)**: Evaluates metrics against dynamic thresholds and generates root-cause hypotheses with confidence scores.
+- **Remediation Allowlist**: Pre-authorized operational fixes (`RESTART_WORKER`, `RENEW_LEASE`, `CLEAR_BOUNDED_CACHE`, `RETRY_TRANSIENT`, `SWITCH_MODEL_REPLICA`, `FAILOVER_DEVICE`) are permitted to execute under policy; structural modifications require human review.
+
+### 7.3 Decentralized Memory Mesh (`MemoryMeshReplicator`)
+- **Vector Clock Causality**: `MemoryConflictResolver` evaluates vector clocks across heterogeneous nodes (PC, Android, Satellite, Server) to determine causal dominance.
+- **Tombstone Deletion Guarantees**: Deletions create tombstones that propagate across the mesh, preventing deleted facts from resurrecting upon synchronization.
+- **Conflict Quarantine**: Concurrent divergent modifications are safely quarantined into `ConflictRecord`s for review without silent data corruption.
+
+### 7.4 Governed Model Evolution & Differential Privacy
+- **Dataset Lineage (`DatasetLineageTracker`)**: Tracks interaction provenance, consent tokens, PII scrubbing verification, and supports user consent revocation (Right-to-be-Forgotten).
+- **Differential Privacy (`DifferentialPrivacyAccountant`)**: Enforces hard $(\epsilon, \delta)$ privacy budget ceilings and injects calibrated Gaussian/Laplace noise during adaptation.
+- **Model Safety Evaluation (`ModelSafetyEvaluator`)**: Audits candidate models across accuracy, hallucination ($\le 5\%$), prompt injection resistance ($\ge 95\%$), and 100% policy compliance before promotion.
+- **Governed Registry (`EvolutionModelRegistry`)**: Governs model lifecycle (`DISCOVERED` $\rightarrow$ `EVALUATED` $\rightarrow$ `VERIFIED` $\rightarrow$ `CANDIDATE` $\rightarrow$ `CANARY` $\rightarrow$ `ACTIVE`) with instant rollback capabilities.
+
+### 7.5 Evolution Governance & Emergency Kill Switches
+- **Persistent Kill Switches (`KillSwitchSystem`)**: Tamper-resistant emergency trip switches across 6 operational domains (`ALL_SWARMS`, `AUTONOMOUS_REMEDIATION`, `MODEL_PROMOTION`, `CODE_PROMOTION`, `MEMORY_REPLICATION`, `TRAINING_PIPELINE`).
+- **Policy Invariance**: Kill switches cannot be untripped by autonomous agents; resets strictly require authenticated administrator authority.
+
+
 
 
 

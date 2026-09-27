@@ -10,15 +10,28 @@ from services.control_plane.routers.conversations_router import (
     router as conversations_router,
 )
 from services.control_plane.routers.devices_router import router as devices_router
+from services.control_plane.routers.diagnostics_router import (
+    router as diagnostics_router,
+)
+from services.control_plane.routers.evolution_models_router import (
+    router as evolution_models_router,
+)
+from services.control_plane.routers.killswitches_router import (
+    router as killswitches_router,
+)
 from services.control_plane.routers.marketplace_router import (
     router as marketplace_router,
 )
 from services.control_plane.routers.memory_router import router as memory_router
 from services.control_plane.routers.overview_router import router as overview_router
 from services.control_plane.routers.plugins_router import router as plugins_router
+from services.control_plane.routers.proposals_router import (
+    router as proposals_router,
+)
 from services.control_plane.routers.scheduler_router import (
     router as scheduler_router,
 )
+from services.control_plane.routers.swarms_router import router as swarms_router
 from services.control_plane.routers.tasks_router import router as tasks_router
 from services.control_plane.routers.ws_router import router as ws_router
 
@@ -36,4 +49,9 @@ __all__ = [
     "marketplace_router",
     "backups_router",
     "connectors_router",
+    "swarms_router",
+    "diagnostics_router",
+    "proposals_router",
+    "evolution_models_router",
+    "killswitches_router",
 ]
