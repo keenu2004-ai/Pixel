@@ -1,5 +1,4 @@
-"""PIXEL Core Abstract Interfaces."""
-
+from packages.core.interfaces.checkpointer import BaseCheckpointer
 from packages.core.interfaces.memory import BaseMemoryStore
 from packages.core.interfaces.stt import BaseSTTProvider
 from packages.core.interfaces.tools import BaseTool
@@ -14,4 +13,5 @@ __all__ = [
     "BaseTTSProvider",
     "BaseTool",
     "BaseMemoryStore",
+    "BaseCheckpointer",
 ]

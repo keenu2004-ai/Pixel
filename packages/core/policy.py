@@ -44,14 +44,15 @@ class PolicyEngine:
 
         # 2. Filesystem sandbox & path traversal check
         if tool_spec.name in ["read_file", "write_file", "delete_file", "edit_code"]:
-            target_path = str(arguments.get("path", ""))
+            target_path = str(arguments.get("path", "")).lower()
             norm_path = os.path.normpath(target_path)
-            if ".." in norm_path or norm_path.startswith("/") or (len(norm_path) > 1 and norm_path[1] == ":"):
+            forbidden_system_dirs = ["/etc", "/sys", "/proc", "/root", "/boot", "/dev", "c:\\windows", "c:\\boot", "c:\\recovery"]
+            if ".." in norm_path or any(norm_path.startswith(d) for d in forbidden_system_dirs):
                 if not arguments.get("allow_absolute", False):
                     return PolicyDecision(
                         verdict=PolicyVerdict.DENY,
                         risk_class=RiskClass.HIGH_IMPACT,
-                        reason="Path traversal or unauthorized path outside sandbox detected"
+                        reason="Path traversal or unauthorized path outside sandbox detected",
                     )
 
         # 3. Handle explicit tool requirement for approval

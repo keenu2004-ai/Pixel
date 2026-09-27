@@ -57,14 +57,17 @@
 - **Exit Condition**: Memory recall correctly retrieves verified facts in subsequent sessions; "forget" command cryptographically wipes records; deterministic fast path maintains zero RAG overhead.
 - **Status**: Completed & Verified (Fact write latency: 4.8ms, AST chunking: 4.0ms, Hybrid retrieval: 4.5ms).
 
-### Phase 4: LangGraph Agent Runtime & Tool Policy Engine (ACTIVE MILESTONE)
+### Phase 4: LangGraph Agent Runtime & Tool Policy Engine (COMPLETED)
 - **Scope**:
-  - Stateful LangGraph multi-step agent graphs with checkpointing and state persistence.
-  - Policy & Risk evaluation layer with interactive approval cards for sensitive actions.
-  - Structured tool error recovery and retry policies.
-- **Exit Condition**: Multi-step research and planning tasks successfully complete; high-risk tools strictly require human sign-off.
+  - Stateful LangGraph multi-step agent graph (`AgentGraph`) with bounded execution and loop limits.
+  - Canonical `ToolRegistry` and built-in tool suites (Filesystem, OS, Memory, Knowledge).
+  - Non-bypassable L6 `AgentPolicyGate` with HMAC-signed `ApprovalCard` generation, replay defense, and audit records.
+  - L8 post-execution `ActionVerifier` and SQLite transactional state checkpointer.
+  - Integration with `DeterministicIntentEngine` maintaining sub-millisecond fast-path execution.
+- **Exit Condition**: Multi-step research and planning tasks successfully complete; high-risk tools strictly require human sign-off; deterministic fast path maintains zero agent overhead.
+- **Status**: Completed & Verified (Policy evaluation: 0.01ms, Checkpoint save/restore: 7.29ms, End-to-end agent task: 21.80ms, Fast-path: 0.04ms).
 
-### Phase 5: Computer Control & Serena Semantic Coding Harness
+### Phase 5: Computer Control & Serena Semantic Coding Harness (ACTIVE MILESTONE)
 - **Scope**:
   - Desktop control sandbox (window management, clipboard, allowlisted shell).
   - Serena MCP integration for AST symbol discovery and semantic code editing.
