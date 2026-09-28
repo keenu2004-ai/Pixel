@@ -10,6 +10,7 @@ from typing import Any
 from packages.contracts.intents import IntentPacket, IntentRoutingType
 from packages.core.interfaces.os_adapter import BaseOSAdapter
 from services.agent_runtime.engine import AgentRuntimeEngine
+from services.fleet.manager import FleetOperationsManager
 from services.intent_engine.parser import DeterministicIntentParser
 from services.intent_engine.response_generator import ResponseGenerator
 from services.intent_engine.router import DeterministicRouter
@@ -31,6 +32,7 @@ class DeterministicIntentEngine:
         rag_retriever: RAGRetriever | None = None,
         agent_engine: AgentRuntimeEngine | None = None,
         multimodal_manager: MultimodalPerceptionManager | None = None,
+        fleet_manager: FleetOperationsManager | None = None,
     ) -> None:
         self.os_adapter = os_adapter or MockOSAdapter()
         self.router = DeterministicRouter(os_adapter=self.os_adapter)
@@ -38,6 +40,7 @@ class DeterministicIntentEngine:
         self.memory_manager = memory_manager
         self.rag_retriever = rag_retriever
         self.multimodal_manager = multimodal_manager or MultimodalPerceptionManager()
+        self.fleet_manager = fleet_manager
         self.agent_engine = agent_engine or AgentRuntimeEngine(
             os_adapter=self.os_adapter,
             memory_manager=self.memory_manager,
@@ -111,6 +114,29 @@ class DeterministicIntentEngine:
             else:
                 reply = f"I observe your screen: {ctx_payload.active_screen_summary}. Visible elements: {ctx_payload.visible_elements_summary or 'None'}."
             return reply, packet, {"multimodal_context": ctx_payload.model_dump()}
+
+        # 4.0b Edge AI Swarm & Fleet queries ("fleet status", "nodes status", "swarm status", "active nodes")
+        if any(
+            w in t
+            for w in [
+                "fleet status",
+                "swarm status",
+                "nodes status",
+                "active nodes",
+                "active devices",
+            ]
+        ):
+            if self.fleet_manager:
+                nodes = self.fleet_manager.node_manager.list_active_nodes()
+                node_names = ", ".join([n.identity.node_name for n in nodes]) or "None"
+                reply = (
+                    f"Fleet active: {len(nodes)} nodes online ({node_names})."
+                    if not is_hindi
+                    else f"Fleet active hai: {len(nodes)} nodes online hain ({node_names})."
+                )
+                return reply, packet, {"active_nodes": [n.model_dump() for n in nodes]}
+            reply = "Fleet manager is not initialized."
+            return reply, packet, None
 
         # 4.1 Memory explanation queries ("what do you remember about me", "why do you think that")
         if "what do you remember" in t or "kya yaad hai" in t:

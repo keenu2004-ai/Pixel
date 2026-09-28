@@ -16,6 +16,7 @@ from services.control_plane.routers.diagnostics_router import (
 from services.control_plane.routers.evolution_models_router import (
     router as evolution_models_router,
 )
+from services.control_plane.routers.fleet_router import router as fleet_router
 from services.control_plane.routers.killswitches_router import (
     router as killswitches_router,
 )
@@ -58,6 +59,7 @@ __all__ = [
     "backups_router",
     "connectors_router",
     "swarms_router",
+    "fleet_router",
     "diagnostics_router",
     "proposals_router",
     "evolution_models_router",

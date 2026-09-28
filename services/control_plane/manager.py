@@ -59,6 +59,7 @@ from services.ecosystem.sandbox.subprocess_driver import SubprocessSandboxDriver
 from services.ecosystem.skill_bridge import CommunitySkillBridge
 from services.ecosystem.vetting import SkillVettingPipeline
 from services.ecosystem.webhooks.engine import WebhookEngine
+from services.fleet.manager import FleetOperationsManager
 from services.memory.manager import MemoryManager
 from services.multimodal.manager import MultimodalPerceptionManager
 from services.orchestration.pki import PKIEngine
@@ -83,6 +84,7 @@ class ControlPlaneManager:
         memory_manager: MemoryManager | None = None,
         personalization_manager: PersonalizationManager | None = None,
         multimodal_manager: MultimodalPerceptionManager | None = None,
+        fleet_manager: FleetOperationsManager | None = None,
         policy_gate: AgentPolicyGate | None = None,
         tool_registry: ToolRegistry | None = None,
         event_bus: EventBus | None = None,
@@ -112,10 +114,19 @@ class ControlPlaneManager:
         # 2b. Multimodal Perception & Vision (Phase 16)
         self.multimodal_manager = multimodal_manager or MultimodalPerceptionManager()
 
+        # 2c. Edge AI Swarm & Fleet Operations (Phase 17)
+        self.fleet_manager = fleet_manager or FleetOperationsManager(
+            pki_engine=self.pki_engine,
+            memory_manager=self.memory_manager,
+            multimodal_manager=self.multimodal_manager,
+        )
+
         # 3. Policy and Verification
         self.policy_gate = policy_gate or AgentPolicyGate()
         self.tool_registry = tool_registry or ToolRegistry()
         for tool in self.multimodal_manager.tools:
+            self.tool_registry.register_tool(tool)
+        for tool in self.fleet_manager.tools:
             self.tool_registry.register_tool(tool)
         self.action_verifier = ActionVerifier()
 
